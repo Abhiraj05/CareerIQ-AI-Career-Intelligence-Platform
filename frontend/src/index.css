@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body, #root {
+    height: 100%;
+    background: #09090f;
+    color: #e8e8f0;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
+
+  input, select, textarea {
+    font-family: 'DM Sans', sans-serif;
+  }
+}
+
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-surface border border-white/[0.07] rounded-2xl transition-all duration-300;
+  }
+  .card-hover {
+    @apply card hover:border-accent/40 hover:shadow-accent hover:-translate-y-0.5;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-gradient-to-r from-accent to-violet-400 text-white font-display font-semibold text-sm
+           px-6 py-3 rounded-xl cursor-pointer transition-all duration-300
+           hover:-translate-y-px hover:shadow-accent-lg hover:brightness-110
+           active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-text border border-white/[0.07] font-display font-medium text-sm
+           px-6 py-3 rounded-xl cursor-pointer transition-all duration-300
+           hover:border-accent/60 hover:text-accent hover:bg-accent/5;
+  }
+  .btn-sm {
+    @apply px-4 py-2 text-xs rounded-lg;
+  }
+
+  /* Form inputs */
+  .input {
+    @apply w-full bg-surface2 border border-white/[0.07] rounded-xl px-4 py-3
+           text-[#e8e8f0] text-sm outline-none transition-all duration-300
+           focus:border-accent focus:ring-2 focus:ring-accent/10
+           placeholder:text-muted;
+  }
+
+  /* Tags */
+  .tag {
+    @apply inline-flex items-center gap-1.5 bg-accent/15 border border-accent/30
+           rounded-full px-3 py-1 text-xs text-violet-300 cursor-pointer
+           transition-all duration-200 hover:bg-accent/25;
+  }
+
+  /* Sidebar nav items */
+  .nav-item {
+    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer
+           transition-all duration-200 text-sm font-medium text-muted
+           hover:bg-white/5 hover:text-[#e8e8f0];
+  }
+  .nav-item-active {
+    @apply bg-accent/15 text-accent border border-accent/20;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent;
+  }
+
+  /* Progress bars */
+  .progress-track {
+    @apply bg-surface2 rounded-full h-1.5 overflow-hidden;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  /* Accordion */
+  .accordion-trigger {
+    @apply flex items-center justify-between w-full p-5 bg-surface
+           hover:bg-surface2 transition-colors duration-200 cursor-pointer;
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    @apply border-2 border-dashed border-white/[0.07] rounded-2xl p-12
+           text-center cursor-pointer transition-all duration-300
+           hover:border-accent/60 hover:bg-accent/5;
+  }
+
+  /* Question option */
+  .q-option {
+    @apply p-3.5 border border-white/[0.07] rounded-xl cursor-pointer text-sm
+           transition-all duration-200 hover:border-accent/60 hover:bg-accent/5;
+  }
+  .q-option-selected { @apply border-accent bg-accent/15 text-accent; }
+  .q-option-correct  { @apply border-accent2 bg-accent2/15 text-accent2; }
+  .q-option-wrong    { @apply border-accent3 bg-accent3/15 text-accent3; }
+
+  /* Toggle */
+  .toggle-track {
+    @apply relative w-11 h-6 bg-surface2 border border-white/[0.07] rounded-full
+           cursor-pointer transition-colors duration-300;
+  }
+  .toggle-track-on { @apply bg-accent border-accent/60; }
+  .toggle-knob {
+    @apply absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full
+           shadow-sm transition-transform duration-300;
+  }
+  .toggle-knob-on { @apply translate-x-5; }
+
+  /* Glass nav */
+  .glass-nav {
+    @apply bg-bg/80 backdrop-blur-xl border-b border-white/[0.07];
+  }
+
+  /* Landing feature card */
+  .feature-card {
+    @apply bg-surface border border-white/[0.07] rounded-2xl p-8
+           transition-all duration-300
+           hover:border-accent/40 hover:-translate-y-1.5
+           hover:shadow-[0_20px_60px_rgba(124,109,250,0.15)];
+  }
+}
+
+@layer utilities {
+  .text-text { color: #e8e8f0; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
