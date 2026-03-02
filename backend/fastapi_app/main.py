@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap
+from fastapi_app.schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap
 import os
 from langchain_groq import ChatGroq
 import json
-from prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt
+from fastapi_app.prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt
 app = FastAPI()
 
 origins = [
@@ -31,7 +31,7 @@ os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
 @app.post("/analyze_resume")
 async def analyze_resume(request: ResumeAnalysisRequest):
-    resume_text = request.text
+    resume_text = request.resume_text
 
     # Intializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
@@ -119,8 +119,10 @@ def generate_roadmap(request:Roadmap):
 
 @app.post("/generate_interview_questions")
 def generate_interview_questions(request: InterviewQuestionsRequest):
-    level_type = request.level_type
-    category = request.category
+    target_role = request.target_role
+    company_type = request.company_type
+    experience_level = request.experience_level
+    tech_stack = request.tech_stack
     
     # Intializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
@@ -132,52 +134,51 @@ def generate_interview_questions(request: InterviewQuestionsRequest):
                          )
     # llm model request & response prompt
     messages = [
-        ("system", interview_questions_prompt),
-        (
-            "human",
-            f"""
-            
-        "
-        Generate a interview questions for {category}  of {level_type} level using a structured, phase-based format.
-        
-        
-        Instructions:
-        - Ensure difficulty aligns realistically with industry interview standards.
-        - Questions must be skill-specific, scenario-based, and aligned with real-world expectations.
-        - Avoid vague or overly theoretical questions unless appropriate for the level.
-        - Answers must be concise, technically accurate, and professionally written.
-        - For Medium and Hard levels, prioritize problem-solving, optimization, architecture, or trade-off discussions.
-        - Ensure content reflects current industry demand and commonly tested interview topics.
-        - Keep structure clean, consistent, and scalable.
-        - Return ONLY valid JSON.
-         - Do NOT include explanations outside.
-        - Do NOT use markdown formatting.
-        """
-        """
-            interview_questions : [
-                {
-                "level": "Easy | Medium | Hard",
-                "category": "string",
-                "q": "Interview question",
-                "ans": "Clear, concise, technically accurate answer"
-                 },
-                 {
-                "level": "Easy | Medium | Hard",
-                "category": "string",
-                "q": "Interview question",
-                "ans": "Clear, concise, technically accurate answer"
-                }
-            ]
-        
-        
-        Remember:
-        - Return ONLY valid JSON File.
-        - Follow the exact structure defined in the system instructions.
-        - Please Don't return the </think> text only return dict
-        "
-        """
-        ),
-    ]
+    ("system", interview_questions_prompt),
+    (
+        "human",
+        f"""
+Generate interview questions strictly based on the following candidate profile:
+
+Target Role: {target_role}
+Company Type: {company_type}
+Experience Level: {experience_level}
+Primary Tech Stack: {", ".join(tech_stack)}
+
+Determine the appropriate difficulty level automatically based on experience level:
+- Entry level / 0–1 years → Easy
+- 1–3 years → Easy to Medium
+- 3–5 years → Medium
+- 5+ years → Medium to Hard
+- Senior / Lead roles → Hard
+
+Adapt depth based on company type:
+- FAANG / Big Tech → emphasize system design, optimization, scalability, and trade-offs.
+- Startup → emphasize practical implementation, ownership, and real-world problem solving.
+- Mid-size company → balanced theoretical + practical depth.
+
+Category Selection Rule:
+- If role is frontend → prioritize React, JS, performance, UI architecture.
+- If role is backend → prioritize APIs, databases, system design, scalability.
+- If role is fullstack → mix frontend + backend architecture.
+- If role is data/DSA focused → emphasize data structures & problem-solving.
+- Always align questions with provided tech stack.
+
+Requirements:
+- Questions must reflect real industry interview patterns.
+- Match complexity realistically with experience level.
+- Avoid vague theoretical questions.
+- For Medium: include applied debugging, performance, implementation logic.
+- For Hard: include architecture decisions, trade-offs, scalability, deep reasoning.
+- Ensure answers are concise, technically accurate, and professional.
+- Generate 5–8 well-balanced questions.
+- Return ONLY valid JSON.
+- Do NOT include explanations outside JSON.
+- Do NOT include <think>.
+- Do NOT use markdown formatting.
+"""
+    ),
+]
     llm_model_response = groq_llm.invoke(messages)
     json_data_file = json.loads(llm_model_response.content)
     print(json_data_file)
