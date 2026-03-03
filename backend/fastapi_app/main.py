@@ -1,18 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-from fastapi_app.schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap
-import os
+from schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap
 from langchain_groq import ChatGroq
+from prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt
+from dotenv import load_dotenv
+import os
 import json
-from fastapi_app.prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt
+
+
+# fastapi app initialize
 app = FastAPI()
 
+# allowed origins
 origins = [
     "http://localhost:8000",
     "http://localhost:5173"
 ]
 
+# middlewares
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -26,21 +31,20 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
+
 # resume analysis and return a json response with insights and suggestions
-
-
-@app.post("/analyze_resume")
+@app.get("/analyze_resume")
 async def analyze_resume(request: ResumeAnalysisRequest):
     resume_text = request.resume_text
 
-    # Intializing groq model
+    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
-                         temperature=0,
-                         max_retries=2,
-                         max_tokens=None,
-                         timeout=30,
-                         reasoning_format="parsed"
-                         )
+                        temperature=0,
+                        max_retries=2,
+                        max_tokens=None,
+                        timeout=30,
+                        reasoning_format="parsed"
+                        )
     # llm model request & response prompt
     messages = [
         ("system", resume_prompt),
@@ -74,18 +78,21 @@ async def analyze_resume(request: ResumeAnalysisRequest):
     return {"analysis_result": json_data_file}
 
 
-@app.post("/generate_roadmap")
-def generate_roadmap(request:Roadmap):
+
+
+# generates a roadmap based on career role selected by user
+@app.get("/generate_roadmap")
+def generate_roadmap(request: Roadmap):
     career_role = request.career_role
-    
-    # Intializing groq model
+
+    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
-                         temperature=0,
-                         max_retries=2,
-                         max_tokens=None,
-                         timeout=30,
-                         reasoning_format="parsed"
-                         )
+                        temperature=0,
+                        max_retries=2,
+                        max_tokens=None,
+                        timeout=30,
+                        reasoning_format="parsed"
+                        )
     # llm model request & response prompt
     messages = [
         ("system", roadmap_prompt),
@@ -117,68 +124,70 @@ def generate_roadmap(request:Roadmap):
     return {"roadmap": json_data_file}
 
 
-@app.post("/generate_interview_questions")
+
+# generates a interview questions based on target role,company type,experience level,tech stack selected by user
+@app.get("/generate_interview_questions")
 def generate_interview_questions(request: InterviewQuestionsRequest):
     target_role = request.target_role
     company_type = request.company_type
     experience_level = request.experience_level
     tech_stack = request.tech_stack
-    
-    # Intializing groq model
+
+    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
-                         temperature=0,
-                         max_retries=2,
-                         max_tokens=None,
-                         timeout=30,
-                         reasoning_format="parsed"
-                         )
+                        temperature=0,
+                        max_retries=2,
+                        max_tokens=None,
+                        timeout=30,
+                        reasoning_format="parsed"
+                        )
     # llm model request & response prompt
     messages = [
-    ("system", interview_questions_prompt),
-    (
-        "human",
-        f"""
-Generate interview questions strictly based on the following candidate profile:
+        ("system", interview_questions_prompt),
+        (
+            "human",
+            f"""
+        Generate interview questions strictly based on the following candidate profile:
 
-Target Role: {target_role}
-Company Type: {company_type}
-Experience Level: {experience_level}
-Primary Tech Stack: {", ".join(tech_stack)}
+        Target Role: {target_role}
+        Company Type: {company_type}
+        Experience Level: {experience_level}
+        Primary Tech Stack: {", ".join(tech_stack)}
 
-Determine the appropriate difficulty level automatically based on experience level:
-- Entry level / 0–1 years → Easy
-- 1–3 years → Easy to Medium
-- 3–5 years → Medium
-- 5+ years → Medium to Hard
-- Senior / Lead roles → Hard
+        Determine the appropriate difficulty level automatically based on experience level:
+        - Entry level / 0–1 years → Easy
+        - 1–3 years → Easy to Medium
+        - 3–5 years → Medium
+        - 5+ years → Medium to Hard
+        - Senior / Lead roles → Hard
 
-Adapt depth based on company type:
-- FAANG / Big Tech → emphasize system design, optimization, scalability, and trade-offs.
-- Startup → emphasize practical implementation, ownership, and real-world problem solving.
-- Mid-size company → balanced theoretical + practical depth.
+        Adapt depth based on company type:
+        - FAANG / Big Tech → emphasize system design, optimization, scalability, and trade-offs.
+        - Startup → emphasize practical implementation, ownership, and real-world problem solving.
+        - Mid-size company → balanced theoretical + practical depth.
 
-Category Selection Rule:
-- If role is frontend → prioritize React, JS, performance, UI architecture.
-- If role is backend → prioritize APIs, databases, system design, scalability.
-- If role is fullstack → mix frontend + backend architecture.
-- If role is data/DSA focused → emphasize data structures & problem-solving.
-- Always align questions with provided tech stack.
+        Category Selection Rule:
+        - If role is frontend → prioritize React, JS, performance, UI architecture.
+        - If role is backend → prioritize APIs, databases, system design, scalability.
+        - If role is fullstack → mix frontend + backend architecture.
+        - If role is data/DSA focused → emphasize data structures & problem-solving.
+        - Always align questions with provided tech stack.
 
-Requirements:
-- Questions must reflect real industry interview patterns.
-- Match complexity realistically with experience level.
-- Avoid vague theoretical questions.
-- For Medium: include applied debugging, performance, implementation logic.
-- For Hard: include architecture decisions, trade-offs, scalability, deep reasoning.
-- Ensure answers are concise, technically accurate, and professional.
-- Generate 5–8 well-balanced questions.
-- Return ONLY valid JSON.
-- Do NOT include explanations outside JSON.
-- Do NOT include <think>.
-- Do NOT use markdown formatting.
-"""
-    ),
-]
+        Requirements:
+        - Questions must reflect real industry interview patterns.
+        - Match complexity realistically with experience level.
+        - Avoid vague theoretical questions.
+        - For Medium: include applied debugging, performance, implementation logic.
+        - For Hard: include architecture decisions, trade-offs, scalability, deep reasoning.
+        - Ensure answers are concise, technically accurate, and professional.
+        - Generate 5–8 well-balanced questions.
+        - Return ONLY valid JSON.
+        - Do NOT include explanations outside JSON.
+        - Do NOT include <think>.
+        - Do NOT use markdown formatting.
+       """
+        ),
+    ]
     llm_model_response = groq_llm.invoke(messages)
     json_data_file = json.loads(llm_model_response.content)
     print(json_data_file)
