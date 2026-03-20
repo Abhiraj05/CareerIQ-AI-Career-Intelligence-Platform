@@ -70,7 +70,7 @@ export default function InterviewPage() {
               label="Target Role"
               placeholder="Senior Frontend Developer"
               value={form.target_role}
-              onChange={set("role")}
+              onChange={set("target_role")}
             />
             <FormSelect
               label="Company Type"
@@ -82,7 +82,7 @@ export default function InterviewPage() {
               label="Experience"
               options={EXP_LEVELS}
               value={form.experience_level}
-              onChange={set("exp")}
+              onChange={set("experience_level")}
             />
           </div>
           <div className="mb-6">

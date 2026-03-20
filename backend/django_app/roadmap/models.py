@@ -2,7 +2,7 @@ from django.db import models
 from user.models import UserProfile
 # Create your models here.
 
-class roles(models.TextChoices):
+class Roles(models.TextChoices):
     FRONTEND = 'Frontend Developer'
     BACKEND = 'Backend Developer'
     FULLSTACK = 'Full Stack Developer'
@@ -18,9 +18,9 @@ class ExperienceLevel(models.TextChoices):
 
 class CareerRole(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    role_name = models.CharField(max_length=100, choices=roles.choices)
-    experience_level = models.CharField(max_length=50,choices=roles.choices)
-    current_skills = models.JSONField()
+    role_name = models.CharField(max_length=100, choices=Roles.choices)
+    experience_level = models.CharField(max_length=50,choices=ExperienceLevel.choices)
+    current_skills = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

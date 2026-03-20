@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap , AptitudeTestRequest
+from schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap, AptitudeTestRequest
 from langchain_groq import ChatGroq
-from prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt , aptitude_test_prompt
+from prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt, aptitude_test_prompt
 from dotenv import load_dotenv
 import os
 import json
@@ -78,13 +78,13 @@ async def analyze_resume(request: ResumeAnalysisRequest):
     return {"analysis_result": json_data_file}
 
 
-
-
 # generates a roadmap based on career role selected by user
 @app.post("/generate_roadmap")
 def generate_roadmap(request: Roadmap):
-    career_role = request.career_role
-
+    role_name = request.role_name
+    experience_level = request.experience_level
+    current_skills = request.current_skills
+    print(role_name,experience_level,type(current_skills))
     # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
                         temperature=0,
@@ -99,7 +99,7 @@ def generate_roadmap(request: Roadmap):
         (
             "human",
             f"""
-        Generate a detailed roadmap for {career_role} using a structured, phase-based format.
+        Create a comprehensive, phase-based roadmap for becoming a {role_name}, tailored to someone at the {experience_level} level who currently has {current_skills}. using a structured, phase-based format.
         
         
         Instructions:
@@ -122,7 +122,6 @@ def generate_roadmap(request: Roadmap):
     llm_model_response = groq_llm.invoke(messages)
     json_data_file = json.loads(llm_model_response.content)
     return {"roadmap": json_data_file}
-
 
 
 # generates a interview questions based on target role,company type,experience level,tech stack selected by user
@@ -212,10 +211,10 @@ async def generate_aptitude_test(request: AptitudeTestRequest):
                         )
     # llm model request & response prompt
     messages = [
-    ("system", aptitude_test_prompt),
-    (
-        "human",
-        f"""
+        ("system", aptitude_test_prompt),
+        (
+            "human",
+            f"""
     Generate an aptitude test strictly based on the following configuration:
 
     Test Mode: {task_mode}

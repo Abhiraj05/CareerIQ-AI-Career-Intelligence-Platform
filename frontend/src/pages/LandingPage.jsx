@@ -293,7 +293,7 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/[0.07] px-10 py-8 flex items-center justify-between flex-wrap gap-4">
-        <img className="h-10" src={Logo} alt="" />
+        {/* <img className="h-10" src={Logo} alt="" /> */}
 
         <span className="text-muted text-sm">
           © 2025 CareerIQ Inc. — AI-powered career intelligence.

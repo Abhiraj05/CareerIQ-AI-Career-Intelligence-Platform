@@ -2,7 +2,7 @@ from django.db import models
 from user.models import UserProfile
 
 # Create your models here.
-class company_type(models.TextChoices):
+class CompanyType(models.TextChoices):
     STARTUP = 'Startup'
     MID_SIZE = 'Mid-size'
     FAANG = 'FAANG'
@@ -20,7 +20,7 @@ class Experience(models.TextChoices):
 class InterviewPrep(models.Model):
     user_id = models.ForeignKey(UserProfile , on_delete=models.CASCADE)
     target_role = models.CharField(max_length=100)
-    company = models.CharField(max_length=100 , choices=company_type.choices)
+    company = models.CharField(max_length=100 , choices=CompanyType.choices)
     experience_level = models.CharField(max_length=50 , choices=Experience.choices)
     tech_stack = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)

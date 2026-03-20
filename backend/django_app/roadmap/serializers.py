@@ -4,7 +4,7 @@ from roadmap.models import CareerRole,RoadMap
 class CareerRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CareerRole
-        fields = '__all__'
+        fields = ['role_name','experience_level','current_skills']
 
 class RoadMapSerializer(serializers.ModelSerializer):
     class Meta:
