@@ -1,27 +1,41 @@
 from django.db import models
 from user.models import UserProfile
-# Create your models here.
-
-# class Select_Role(models.TextChoices):
-#     Backend_Developer = 'Backend Developer'
-#     Frontend_Developer = 'Frontend Developer'
-#     Fullstack_Developer = 'Fullstack Developer'
-#     Data_Analyst = 'Data Analyst'
-#     SDE1 = 'SDE1'
-#     Product_Engineer = 'Product Engineer'
 
 class Select_Test_Mode(models.TextChoices):
     Practice_Mode = 'Practice Mode'
-    Timed_Assesment = 'Assessment Mode'
-    Full_Developer_Mock = 'Full Developer Mock'
+    Exam_Mode = 'Exam Mode'
+    Full_Mock_Test = 'Full Developer Mock'
 
 class Select_Category(models.TextChoices):
+    Quantitative_Aptitude = 'Quantitative Aptitude'
     Logical_Reasoning = 'Logical Reasoning'
-    Programming_Logic = 'Programming Logic'
-    CS_Fundamentals = 'CS Fundamentals'
-    Core_Concepts = 'Core Concepts'
+    Verbal_Ability = 'Verbal Ability'
     Data_Interpretation = 'Data Interpretation'
+    Technical_Aptitude = 'Technical Aptitude'
     All_Categories = 'All Categories'
+
+class Select_Subtopic(models.TextChoices):
+    Arithmetic = 'Arithmetic'
+    Time_Work = 'Time & Work'
+    Profit_Loss = 'Profit & Loss'
+    Percentages = 'Percentages'
+    Ratio_Proportion = 'Ratio & Proportion'
+    Speed_Time_Distance = 'Speed, Time & Distance'
+    Permutation_Combination = 'Permutation & Combination'
+    Probability = 'Probability'
+    Patterns = 'Patterns'
+    Syllogisms = 'Syllogisms'
+    Sequences = 'Sequences'
+    Synonyms = 'Synonyms'
+    Antonyms = 'Antonyms'
+    Comprehension = 'Comprehension'
+    Bar_Graphs = 'Bar Graphs'
+    Pie_Charts = 'Pie Charts'
+    Tables = 'Tables'
+    Data_Structures = 'Data Structures'
+    Algorithms = 'Algorithms'
+    DBMS = 'DBMS'
+    None_Sub = 'None'
 
 class Difficulty_Level(models.TextChoices):
     Easy = 'Easy'
@@ -31,19 +45,21 @@ class Difficulty_Level(models.TextChoices):
 class AptitudeQuestions(models.Model):
     test = models.ForeignKey('AptitudeTest', on_delete=models.CASCADE, related_name='questions')
     category = models.CharField(max_length=50 , choices=Select_Category.choices)
-    question_text = models.JSONField()
+    subtopic = models.CharField(max_length=50 , choices=Select_Subtopic.choices, default='None')
+    question_text = models.TextField()
+    options = models.JSONField(null=True, blank=True)
     user_answer = models.TextField(blank=True, null=True)
     is_correct = models.BooleanField(default=False)
-    correct_answer = models.JSONField()
+    correct_answer = models.TextField(null=True, blank=True)
     difficulty_level = models.CharField(max_length=20 , choices=Difficulty_Level.choices)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 class AptitudeTest(models.Model):
     user_id = models.ForeignKey(UserProfile , on_delete=models.CASCADE)
-    # role = models.CharField(max_length=50 , choices=Select_Role.choices)
     test_mode = models.CharField(max_length=50 , choices=Select_Test_Mode.choices)
     category = models.CharField(max_length=50 , choices=Select_Category.choices)
+    subtopic = models.CharField(max_length=50 , choices=Select_Subtopic.choices, default='None')
     difficulty_level = models.CharField(max_length=20 , choices=Difficulty_Level.choices)
     no_of_questions = models.IntegerField(default=0)    
     no_of_attempts = models.IntegerField(default=0,)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap, AptitudeTestRequest
 from langchain_groq import ChatGroq
@@ -6,18 +6,39 @@ from .prompt.system_prompt import resume_prompt, roadmap_prompt, interview_quest
 from dotenv import load_dotenv
 import os
 import json
+import re
 
+def extract_json_from_llm(content: str):
+    content = content.strip()
+    try:
+        # First try direct parsing
+        return json.loads(content)
+    except json.JSONDecodeError:
+        # Try to extract JSON from markdown block
+        match = re.search(r"```(?:json)?\s*(\{.*\}|\[.*\])\s*```", content, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(1).strip())
+            except json.JSONDecodeError:
+                pass
+        # As a fallback, try to find the first { and last }
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            try:
+                return json.loads(content[start_idx:end_idx+1])
+            except json.JSONDecodeError:
+                pass
+                
+        raise HTTPException(status_code=500, detail="LLM generated invalid or truncated JSON. Try generating fewer questions or regenerating.")
 
-# fastapi app initialize
 app = FastAPI()
 
-# allowed origins
 origins = [
     "http://localhost:8000",
     "http://localhost:5173"
 ]
 
-# middlewares
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -26,26 +47,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# load the api key
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
-
-# resume analysis and return a json response with insights and suggestions
 @app.post("/analyze_resume")
 async def analyze_resume(request: ResumeAnalysisRequest):
     resume_text = request.resume_text
-
-    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
                         temperature=0,
                         max_retries=2,
-                        max_tokens=None,
-                        timeout=30,
+                        max_tokens=8192,
+                        timeout=60,
                         reasoning_format="parsed"
                         )
-    # llm model request & response prompt
     messages = [
         ("system", resume_prompt),
         (
@@ -74,33 +89,27 @@ async def analyze_resume(request: ResumeAnalysisRequest):
     ]
 
     llm_model_response = groq_llm.invoke(messages)
-    json_data_file = json.loads(llm_model_response.content)
+    json_data_file = extract_json_from_llm(llm_model_response.content)
     return {"analysis_result": json_data_file}
 
-
-# generates a roadmap based on career role selected by user
 @app.post("/generate_roadmap")
 def generate_roadmap(request: Roadmap):
     role_name = request.role_name
     experience_level = request.experience_level
     current_skills = request.current_skills
-    print(role_name,experience_level,type(current_skills))
-    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
                         temperature=0,
                         max_retries=2,
-                        max_tokens=None,
-                        timeout=30,
+                        max_tokens=8192,
+                        timeout=60,
                         reasoning_format="parsed"
                         )
-    # llm model request & response prompt
     messages = [
         ("system", roadmap_prompt),
         (
             "human",
             f"""
         Create a comprehensive, phase-based roadmap for becoming a {role_name}, tailored to someone at the {experience_level} level who currently has {current_skills}. using a structured, phase-based format.
-        
         
         Instructions:
         - Break the roadmap into progressive levels (e.g., Fundamentals → Intermediate → Advanced → Expert).
@@ -120,11 +129,9 @@ def generate_roadmap(request: Roadmap):
         ),
     ]
     llm_model_response = groq_llm.invoke(messages)
-    json_data_file = json.loads(llm_model_response.content)
+    json_data_file = extract_json_from_llm(llm_model_response.content)
     return {"roadmap": json_data_file}
 
-
-# generates a interview questions based on target role,company type,experience level,tech stack selected by user
 @app.post("/generate_interview_questions")
 def generate_interview_questions(request: InterviewQuestionsRequest):
     target_role = request.target_role
@@ -132,15 +139,13 @@ def generate_interview_questions(request: InterviewQuestionsRequest):
     experience_level = request.experience_level
     tech_stack = request.tech_stack
 
-    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
                         temperature=0,
                         max_retries=2,
-                        max_tokens=None,
-                        timeout=30,
+                        max_tokens=8192,
+                        timeout=60,
                         reasoning_format="parsed"
                         )
-    # llm model request & response prompt
     messages = [
         ("system", interview_questions_prompt),
         (
@@ -188,12 +193,9 @@ def generate_interview_questions(request: InterviewQuestionsRequest):
         ),
     ]
     llm_model_response = groq_llm.invoke(messages)
-    json_data_file = json.loads(llm_model_response.content)
-    # print(json_data_file)
+    json_data_file = extract_json_from_llm(llm_model_response.content)
     return {"interview_questions": json_data_file}
 
-
-# generates a aptitude questions based on task mode,category,difficulty level,no of questions selected by user
 @app.post("/generate_aptitude_test")
 async def generate_aptitude_test(request: AptitudeTestRequest):
     task_mode = request.test_mode
@@ -201,15 +203,13 @@ async def generate_aptitude_test(request: AptitudeTestRequest):
     difficulty_level = request.difficulty_level
     no_of_questions = request.no_of_questions
 
-    # initializing groq model
     groq_llm = ChatGroq(model="qwen/qwen3-32b",
                         temperature=0,
                         max_retries=2,
-                        max_tokens=None,
-                        timeout=30,
+                        max_tokens=8192,
+                        timeout=60,
                         reasoning_format="parsed"
                         )
-    # llm model request & response prompt
     messages = [
         ("system", aptitude_test_prompt),
         (
@@ -257,5 +257,30 @@ async def generate_aptitude_test(request: AptitudeTestRequest):
         ),
     ]
     llm_model_response = groq_llm.invoke(messages)
-    json_data_file = json.loads(llm_model_response.content)
-    return {"aptitude_test": json_data_file}
+    json_data_file = extract_json_from_llm(llm_model_response.content)
+
+    formatted_questions = []
+    answers_list = []
+    
+    for idx, q in enumerate(json_data_file.get("questions", [])):
+        ans_idx = 0
+        try:
+            if q["correct_answer"] in q["options"]:
+                ans_idx = q["options"].index(q["correct_answer"])
+        except Exception:
+            pass
+            
+        formatted_q = {
+            "id": q.get("question_id", idx),
+            "text": q["question"],
+            "options": q["options"],
+            "answer_index": ans_idx
+        }
+        formatted_questions.append(formatted_q)
+        answers_list.append(ans_idx)
+
+    return {
+        "questions": formatted_questions,
+        "answer": answers_list,
+        "question": formatted_questions
+    }

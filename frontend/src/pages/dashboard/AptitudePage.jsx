@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { APTITUDE_QUESTIONS } from '../../data/mockData'
+// import { APTITUDE_QUESTIONS } from '../../data/mockData'
 import PageHeader from '../../components/layout/PageHeader'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import ProgressBar from '../../components/ui/ProgressBar'
 import ScoreRing from '../../components/ui/ScoreRing'
 import Icon from '../../components/ui/Icon'
+import Loader from '../../components/ui/Loader'
+import axios from "axios";
 
 const CATEGORIES = [
   { id: 'Quant', label: 'Quantitative Aptitude', color: '#fbbf24', icon: 'search', subtopics: ['Arithmetic', 'Time & Work', 'Profit & Loss', 'Percentages', 'Ratio & Proportion', 'Speed, Time & Distance', 'Permutation & Combination', 'Probability'] },
@@ -20,7 +22,7 @@ export default function AptitudePage() {
   const [selectedMode, setSelectedMode] = useState('Practice');
   const [selectedMainCategory, setSelectedMainCategory] = useState('Quant');
   const [selectedSubtopic, setSelectedSubtopic] = useState('Arithmetic');
-  const [numQuestions, setNumQuestions] = useState(20);
+  const [numQuestions, setNumQuestions] = useState(5);
   const [isCustomNum, setIsCustomNum] = useState(false);
   const [difficulty, setDifficulty] = useState('Medium');
   const [timeLimitType, setTimeLimitType] = useState('Auto');
@@ -37,65 +39,98 @@ export default function AptitudePage() {
   const [loadingTest, setLoadingTest] = useState(false)
   const [apiQuestions, setApiQuestions] = useState([])
   const [currentTestId, setCurrentTestId] = useState(null)
+  
+  const [timeLeft, setTimeLeft] = useState(0)
+
+  useEffect(() => {
+    let timerId;
+    if (started && timeLeft > 0 && !finished) {
+      timerId = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (started && timeLeft === 0 && !finished) {
+      setFinished(true);
+    }
+    return () => clearInterval(timerId);
+  }, [started, timeLeft, finished]);
 
   // Use Quant / Arithmetic as default mock questions
-  const questions = apiQuestions.length > 0 ? apiQuestions : (APTITUDE_QUESTIONS['Quant'] || [])
+  const questions = apiQuestions
   const q = questions[qIdx]
 
-  const startTest = async () => {
-    setLoadingTest(true);
+  const startTest = async (e) => {
+    e.preventDefault();
 
     let apiTestMode = "Practice Mode";
     if (selectedMode === "Exam") apiTestMode = "Exam Mode";
     if (selectedMode === "Mock") apiTestMode = "Full Developer Mock";
 
-    let apiCategory = selectedSubtopic;
-    if (selectedMode === "Mock") apiCategory = "All Categories";
+    const catLabel = CATEGORIES.find(c => c.id === selectedMainCategory)?.label || "Quantitative Aptitude";
+    
+    let apiCategory = catLabel;
+    let apiSubtopic = selectedSubtopic;
 
-    try {
-      const token = localStorage.getItem('token')
-      const requestBody = {
-        user_id: 1, // Fallback user id
-        test_mode: apiTestMode,
-        category: apiCategory,
-        difficulty_level: difficulty === "Custom" ? "Medium" : difficulty,
-        no_of_questions: numQuestions
-      };
-
-      const res = await fetch("http://127.0.0.1:8000/api/aptitude/start_test/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentTestId(data.id);
-        // Replace mock data if backend sends real data
-        if (data.question && Array.isArray(data.question)) {
-          // Map generated questions to UI format exactly
-          // Example mapping, customize based on true backend JSON structure
-          /*
-          setApiQuestions(data.question.map((item, idx) => ({
-              id: item.id || idx,
-              q: item.text,
-              opts: item.options,
-              ans: item.answer_index
-          })))
-          */
-        }
-      }
-    } catch (err) {
-      console.error("Failed to hit backend API, using mock question set", err);
+    if (selectedMode === "Mock") {
+      apiCategory = "All Categories";
+      apiSubtopic = "None";
     }
 
-    setLoadingTest(false);
-    setStarted(true); setQIdx(0); setSelected(null)
-    setSubmitted(false); setScore(0); setFinished(false)
-  }
+    try {
+      setApiQuestions([]);
+      setLoadingTest(true);
+
+      const payload = {
+        test_mode: apiTestMode,
+        category: apiCategory,
+        subtopic: apiSubtopic,
+        difficulty_level: difficulty,
+        no_of_questions: numQuestions
+      };
+            console.log(payload)
+
+      const response = await axios.post(
+        
+        "http://127.0.0.1:8000/api/aptitude/start_test/",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+      
+      const data = response.data;
+      setCurrentTestId(data.id);
+      
+      // format depends on FastAPI response. Assuming data.question maps to UI.
+      if (data.question && Array.isArray(data.question)) {
+        setApiQuestions(data.question.map((item, idx) => ({
+          id: item.id || idx,
+          q: item.question_text || item.question || item.q || item.text,
+          opts: item.options || item.opts,
+          ans: item.answer_index ?? item.answer ?? item.ans
+        })));
+      } else {
+        console.warn("Unexpected backend response structure:", data);
+      }
+      
+      setStarted(true); 
+      setQIdx(0); 
+      setSelected(null);
+      setSubmitted(false); 
+      setScore(0); 
+      setFinished(false);
+      
+      const tl = timeLimitType === 'Custom' ? customTime * 60 : numQuestions * 60;
+      setTimeLeft(tl);
+      alert("Aptitude test generated successfully!");
+    } catch (err) {
+      console.error("Failed to hit backend API", err);
+      alert("Failed to start test. Please check backend connection or configurations.");
+    } finally {
+      setLoadingTest(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (selected === null) return
@@ -105,22 +140,21 @@ export default function AptitudePage() {
     if (isCorrect) setScore((s) => s + 1)
 
     // Example submit to backend
-    if (currentTestId && q.id) {
+    if (currentTestId && q.id !== undefined) {
       try {
-        const token = localStorage.getItem('token')
-        await fetch("http://127.0.0.1:8000/api/aptitude/submit_answer/", {
-          method: "POST",
+        const token = localStorage.getItem('access_token');
+        await axios.post("http://127.0.0.1:8000/api/aptitude/submit_answer/", {
+          id: q.id,
+          user_answer: q.opts[selected]
+          
+        }, {
           headers: {
-            "Content-Type": "application/json",
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify({
-            id: q.id,
-            user_answer: q.opts[selected]
-          })
+          }
         });
+        console.log(user_answer)
       } catch (err) {
-        console.error("Failed to submit to backend", err);
+        console.error("Failed to submit answer to backend", err);
       }
     }
   }
@@ -179,10 +213,19 @@ export default function AptitudePage() {
         <div className="flex-1">
           <div className="flex items-center justify-between mb-8">
             <PageHeader title={`${selectedSubtopic} Aptitude`} subtitle={null} />
-            <div className="flex flex-col items-end gap-2">
-              <span className="text-sm text-muted">Question {qIdx + 1} of {questions.length}</span>
-              <div className="w-32">
-                <ProgressBar pct={((qIdx + 1) / questions.length) * 100} />
+            <div className="flex items-center gap-6">
+              <div className="flex flex-col items-end gap-1">
+                <div className={`text-xl font-bold font-display ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-[#e8e8f0]'}`}>
+                  {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+                </div>
+                <span className="text-xs text-muted">Time Left</span>
+              </div>
+              <div className="h-8 w-px bg-white/10 hidden md:block"></div>
+              <div className="flex flex-col items-end gap-2">
+                <span className="text-sm text-muted">Question {qIdx + 1} of {questions.length}</span>
+                <div className="w-32">
+                  <ProgressBar pct={((qIdx + 1) / questions.length) * 100} />
+                </div>
               </div>
             </div>
           </div>
@@ -252,6 +295,9 @@ export default function AptitudePage() {
       <div className="flex flex-col xl:flex-row gap-6 mt-6">
         {/* Left Main Configuration Area */}
         <div className="flex-1 space-y-6">
+
+          {/* Loading States */}
+          {loadingTest && <Loader text="Generating your aptitude test..." />}
 
           {/* Select Mode */}
           <Card padding="p-6">
@@ -415,7 +461,7 @@ export default function AptitudePage() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
             <div className="flex gap-4 items-center">
               <div className="flex gap-2 p-1 bg-surface2 rounded-xl">
-                {[5, 10, 20].map(num => (
+                {[5, 10, 15].map(num => (
                   <button
                     key={num}
                     onClick={() => { setNumQuestions(num); setIsCustomNum(false); }}
@@ -498,12 +544,22 @@ export default function AptitudePage() {
           {/* Start Button */}
           <button
             onClick={startTest}
-            className="w-full bg-accent hover:bg-accent/90 text-white font-medium py-3.5 rounded-xl shadow-[0_8px_32px_rgba(124,109,250,0.2)] transition-all flex justify-center items-center gap-4 mt-2"
+            disabled={loadingTest}
+            className={`w-full bg-accent hover:bg-accent/90 text-white font-medium py-3.5 rounded-xl shadow-[0_8px_32px_rgba(124,109,250,0.2)] transition-all flex justify-center items-center gap-4 mt-2 ${loadingTest ? 'opacity-70 scale-[0.98]' : 'active:scale-[0.98]'}`}
           >
-            <span className="text-sm tracking-wide">Start Test</span>
-            <span className="text-white/20">|</span>
-            <span className="text-white/80 font-normal text-sm">{numQuestions} Questions</span>
-            <span className="text-white/80 font-normal text-sm">{numQuestions} mins</span>
+            {loadingTest ? (
+               <span className="flex items-center gap-2">
+                 <Icon name="loader" size={16} className="animate-spin" /> 
+                 Generating...
+               </span>
+            ) : (
+              <>
+                <span className="text-sm tracking-wide">Start Test</span>
+                <span className="text-white/20">|</span>
+                <span className="text-white/80 font-normal text-sm">{numQuestions} Questions</span>
+                <span className="text-white/80 font-normal text-sm">{numQuestions} mins</span>
+              </>
+            )}
           </button>
 
         </div>
