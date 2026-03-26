@@ -1,6 +1,6 @@
-from django.contrib import admin
 from django.urls import path
+from progress.views import ProgressSummaryView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('summary/', ProgressSummaryView.as_view(), name='progress_summary'),
 ]

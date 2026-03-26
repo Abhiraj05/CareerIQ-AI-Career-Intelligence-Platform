@@ -54,12 +54,11 @@ os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 @app.post("/analyze_resume")
 async def analyze_resume(request: ResumeAnalysisRequest):
     resume_text = request.resume_text
-    groq_llm = ChatGroq(model="qwen/qwen3-32b",
+    groq_llm = ChatGroq(model="llama-3.3-70b-versatile",
                         temperature=0,
                         max_retries=2,
                         max_tokens=8192,
-                        timeout=60,
-                        reasoning_format="parsed"
+                        timeout=60
                         )
     messages = [
         ("system", resume_prompt),
@@ -97,12 +96,11 @@ def generate_roadmap(request: Roadmap):
     role_name = request.role_name
     experience_level = request.experience_level
     current_skills = request.current_skills
-    groq_llm = ChatGroq(model="qwen/qwen3-32b",
+    groq_llm = ChatGroq(model="llama-3.3-70b-versatile",
                         temperature=0,
                         max_retries=2,
                         max_tokens=8192,
-                        timeout=60,
-                        reasoning_format="parsed"
+                        timeout=60
                         )
     messages = [
         ("system", roadmap_prompt),
@@ -139,12 +137,11 @@ def generate_interview_questions(request: InterviewQuestionsRequest):
     experience_level = request.experience_level
     tech_stack = request.tech_stack
 
-    groq_llm = ChatGroq(model="qwen/qwen3-32b",
+    groq_llm = ChatGroq(model="llama-3.3-70b-versatile",
                         temperature=0,
                         max_retries=2,
                         max_tokens=8192,
-                        timeout=60,
-                        reasoning_format="parsed"
+                        timeout=60
                         )
     messages = [
         ("system", interview_questions_prompt),
@@ -203,12 +200,11 @@ async def generate_aptitude_test(request: AptitudeTestRequest):
     difficulty_level = request.difficulty_level
     no_of_questions = request.no_of_questions
 
-    groq_llm = ChatGroq(model="qwen/qwen3-32b",
+    groq_llm = ChatGroq(model="llama-3.3-70b-versatile",
                         temperature=0,
                         max_retries=2,
                         max_tokens=8192,
-                        timeout=60,
-                        reasoning_format="parsed"
+                        timeout=60
                         )
     messages = [
         ("system", aptitude_test_prompt),

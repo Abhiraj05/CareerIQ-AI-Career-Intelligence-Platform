@@ -27,7 +27,8 @@ class CareerRole(models.Model):
 
 class RoadMap(models.Model):
     role = models.ForeignKey(CareerRole, on_delete=models.CASCADE)
-    roadmap=models.JSONField()
+    roadmap = models.JSONField()
+    completed_modules = models.JSONField(default=list)  # e.g. ["0-0", "0-1", "1-2"]
     created_at = models.DateTimeField(auto_now_add=True)
     
 

@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import axios from 'axios'
 import { useApp } from '../../context/AppContext'
 import PageHeader from '../../components/layout/PageHeader'
 import Card from '../../components/ui/Card'
@@ -8,41 +10,92 @@ import FormInput from '../../components/ui/FormInput'
 import Toggle from '../../components/ui/Toggle'
 import Icon from '../../components/ui/Icon'
 
+const api = axios.create({ baseURL: 'http://127.0.0.1:8000/api' })
+const authHeader = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+})
+
 const PREFS = [
-  { key: 'emailNotifs', label: 'Email Notifications', desc: 'Get updates on progress and AI recommendations' },
-  { key: 'weeklyReport', label: 'Weekly Progress Report', desc: 'Receive a weekly summary of your learning activity' },
-  { key: 'darkMode', label: 'Dark Mode', desc: 'Use the dark color theme (recommended)' },
-  { key: 'aiSuggestions', label: 'AI Suggestions', desc: 'Get personalized tips from the AI engine' },
+  { key: 'email_notifications', label: 'Email Notifications', desc: 'Get updates on progress and AI recommendations' },
+  { key: 'weekly_report', label: 'Weekly Progress Report', desc: 'Receive a weekly summary of your learning activity' },
+  { key: 'dark_mode', label: 'Dark Mode', desc: 'Use the dark color theme (recommended)' },
+  { key: 'ai_suggestions', label: 'AI Suggestions', desc: 'Get personalized tips from the AI engine' },
 ]
 
 export default function SettingsPage() {
-  const { user } = useApp()
-  const [profile, setProfile] = useState({ ...user })
-  const [prefs, setPrefs] = useState({ emailNotifs: true, weeklyReport: true, darkMode: true, aiSuggestions: true })
+  const { user, setUser } = useApp()
+  const [profile, setProfile] = useState({ name: '', email: '', current_role: '', company: '' })
+  const [prefs, setPrefs] = useState({ email_notifications: true, weekly_report: true, dark_mode: true, ai_suggestions: true })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get('/user/profile/', authHeader())
+        setProfile({
+          name: res.data.name,
+          email: res.data.email,
+          current_role: res.data.current_role,
+          company: res.data.company
+        })
+        setPrefs(res.data.preferences)
+      } catch (err) {
+        console.error('Failed to fetch profile:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const setP = (k) => (e) => setProfile({ ...profile, [k]: e.target.value })
   const togglePref = (k) => setPrefs((p) => ({ ...p, [k]: !p[k] }))
 
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await api.put('/user/profile/', { ...profile, preferences: prefs }, authHeader())
+      setSaved(true)
+      setUser({ ...user, ...profile })
+      setTimeout(() => setSaved(false), 2500)
+    } finally {
+      setSaving(false)
+    }
   }
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete your account?")) {
+      try {
+        await api.delete('/user/profile/', authHeader())
+        localStorage.clear()
+        window.location.href = '/login'
+      } catch (err) {
+        console.error('Delete failed:', err)
+      }
+    }
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
     <div>
       <PageHeader title="Settings" subtitle="Manage your profile, preferences, and account settings." />
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Profile */}
         <Card padding="p-7" delay={0.1}>
-          {/* Avatar */}
           <div className="flex items-center gap-4 mb-7">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden">
-              {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user?.name?.charAt(0) || '?')}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xl font-bold flex-shrink-0">
+              {profile.name.charAt(0) || 'U'}
             </div>
             <div>
-              <p className="font-display font-bold text-lg">{profile.name}</p>
+              <p className="font-display font-bold text-lg">{profile.name || 'User'}</p>
               <p className="text-muted text-sm">{profile.email}</p>
               <button className="text-xs text-accent mt-1 hover:underline cursor-pointer">Change Avatar</button>
             </div>
@@ -51,20 +104,19 @@ export default function SettingsPage() {
           <h3 className="font-display font-bold text-base mb-5">Profile Information</h3>
           <div className="flex flex-col gap-4">
             <FormInput label="Full Name" value={profile.name} onChange={setP('name')} />
-            <FormInput label="Email Address" value={profile.email} onChange={setP('email')} type="email" />
-            <FormInput label="Current Role" value={profile.role} onChange={setP('role')} />
+            <FormInput label="Email Address" value={profile.email} onChange={setP('email')} type="email" disabled />
+            <FormInput label="Current Role" value={profile.current_role} onChange={setP('current_role')} />
             <FormInput label="Company" value={profile.company} onChange={setP('company')} />
 
             <motion.div animate={saved ? { scale: [1, 1.02, 1] } : {}}>
-              <Button onClick={handleSave} className="w-full justify-center">
-                {saved ? <><Icon name="check" size={15} /> Saved!</> : 'Save Changes'}
+              <Button onClick={handleSave} loading={saving} className="w-full justify-center">
+                {saved ? <><Icon name="check" size={15} /> Saved Successfully!</> : 'Save Changes'}
               </Button>
             </motion.div>
           </div>
         </Card>
 
         <div className="flex flex-col gap-5">
-          {/* Preferences */}
           <Card padding="p-7" delay={0.2}>
             <h3 className="font-display font-bold text-base mb-6">Preferences</h3>
             <div className="flex flex-col gap-5">
@@ -80,7 +132,6 @@ export default function SettingsPage() {
             </div>
           </Card>
 
-          {/* Subscription */}
           <Card padding="p-6" delay={0.3}>
             <h3 className="font-display font-bold text-base mb-4">Subscription</h3>
             <div className="bg-accent/8 border border-accent/20 rounded-xl p-4 mb-4">
@@ -90,19 +141,21 @@ export default function SettingsPage() {
               </div>
               <p className="text-muted text-xs">5 roadmaps/month · 20 interview questions · Basic analytics</p>
             </div>
-            <Button className="w-full justify-center">
-              Upgrade to Pro — $19/mo
+            <Button 
+              onClick={() => navigate('/dashboard/pricing')}
+              className="w-full justify-center"
+            >
+              Update Plan
             </Button>
           </Card>
 
-          {/* Danger Zone */}
           <Card padding="p-6" delay={0.4}>
             <h3 className="font-display font-bold text-base mb-4 text-accent3">Danger Zone</h3>
             <div className="flex gap-3">
-              <button className="text-xs font-medium text-muted border border-accent3/20 px-4 py-2 rounded-lg hover:border-accent3/50 transition-colors cursor-pointer">
-                Export Data
-              </button>
-              <button className="text-xs font-medium text-accent3 border border-accent3/30 px-4 py-2 rounded-lg hover:bg-accent3/5 transition-colors cursor-pointer">
+              <button 
+                onClick={handleDelete}
+                className="text-xs font-medium text-accent3 border border-accent3/30 px-4 py-2 rounded-lg hover:bg-accent3/5 transition-colors cursor-pointer"
+              >
                 Delete Account
               </button>
             </div>

@@ -8,27 +8,21 @@ from resume.models import UserResume, ResumeAnalysis
 import uuid
 from resume.serializers import ResumeUploadSerializer
 from markitdown import MarkItDown
-from django.contrib.auth.models import User
 import os
 
 
 def file_text_extract(file):
-    temp_path = None
-    text = None
     extract = MarkItDown()
-    temp_path = f"temp_{uuid.uuid4()}_{file}"
-    f = open(temp_path, "wb")
-    for chunk in file.chunks():
-        f.write(chunk)
-    f.close()
-
+    temp_path = f"temp_{uuid.uuid4()}_{file.name}"
+    with open(temp_path, "wb") as f:
+        for chunk in file.chunks():
+            f.write(chunk)
+    text = None
     try:
         result = extract.convert(temp_path)
         text = result.text_content
     except Exception as e:
-        if not isinstance(text, str):
-            print(e)
-            return None
+        print(e)
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
@@ -36,7 +30,7 @@ def file_text_extract(file):
 
 
 class ResumeUploadView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = ResumeUploadSerializer(data=request.data)
@@ -44,21 +38,45 @@ class ResumeUploadView(APIView):
             resume_file = serializer.validated_data['resume_file']
             text = file_text_extract(resume_file)
             if text is None:
-                return Response({'error': 'Failed to extract text from the resume.'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Failed to extract text from the resume.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                response = requests.post("http://127.0.0.1:8001/analyze_resume", json={"resume_text": text}, timeout=60)
+                if response.status_code != 200:
+                    return Response({'error': f'AI Analysis failed with status {response.status_code}', 'detail': response.text}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+                analysis_data = response.json()
+                ResumeAnalysis.objects.create(user_id=request.user, analysis_result=analysis_data)
+                return JsonResponse(analysis_data)
+            except requests.exceptions.RequestException as e:
+                return Response({'error': f'Failed to connect to AI Service: {str(e)}'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # resume = UserResume.objects.create(
-            #     user=request.user, resume_file=resume_file, extracted_text=text)
-            # resume.save()
 
-            response = requests.post("http://127.0.0.1:8001/analyze_resume",
-                                     json={
-                                         "resume_text": text})
+class ResumeHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
 
-            #  analysis = ResumeAnalysis.objects.create(
-            #     user=request.user, resume_text=text, analysis_result=response.json())
-            data = response.json()
-            return JsonResponse(
-                # "id": analysis.id,
-                # "resume_text": text,
-                response.json())
+    def get(self, request):
+        analyses = ResumeAnalysis.objects.filter(user_id=request.user).order_by('-created_at')
+        data = []
+        for a in analyses:
+            result = a.analysis_result or {}
+            ar = result.get("analysis_result", result)
+            data.append({
+                "id": a.id,
+                "overall_score": ar.get("overall_score", 0),
+                "overall_label": ar.get("overall_label", ""),
+                "created_at": a.created_at.strftime("%b %d, %Y %I:%M %p"),
+            })
+        return JsonResponse({"history": data})
+
+
+class ResumeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, analysis_id):
+        try:
+            a = ResumeAnalysis.objects.get(id=analysis_id, user_id=request.user)
+            return JsonResponse({"id": a.id, "analysis_result": a.analysis_result, "created_at": a.created_at.strftime("%b %d, %Y")})
+        except ResumeAnalysis.DoesNotExist:
+            return JsonResponse({"error": "Not found."}, status=404)

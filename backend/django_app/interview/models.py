@@ -23,8 +23,10 @@ class InterviewPrep(models.Model):
     company = models.CharField(max_length=100 , choices=CompanyType.choices)
     experience_level = models.CharField(max_length=50 , choices=Experience.choices)
     tech_stack = models.JSONField(default=list)
+    reviewed_questions = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
 class InterviewQuestion(models.Model):
     interview_prep = models.ForeignKey(InterviewPrep, on_delete=models.CASCADE)

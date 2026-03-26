@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-// import { APTITUDE_QUESTIONS } from '../../data/mockData'
 import PageHeader from '../../components/layout/PageHeader'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -8,6 +7,7 @@ import ProgressBar from '../../components/ui/ProgressBar'
 import ScoreRing from '../../components/ui/ScoreRing'
 import Icon from '../../components/ui/Icon'
 import Loader from '../../components/ui/Loader'
+import HistoryDrawer from '../../components/ui/HistoryDrawer'
 import axios from "axios";
 
 const CATEGORIES = [
@@ -39,8 +39,30 @@ export default function AptitudePage() {
   const [loadingTest, setLoadingTest] = useState(false)
   const [apiQuestions, setApiQuestions] = useState([])
   const [currentTestId, setCurrentTestId] = useState(null)
-  
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyItems, setHistoryItems] = useState([])
+  const [reviewMode, setReviewMode] = useState(false)
+  const [reviewTest, setReviewTest] = useState(null)
   const [timeLeft, setTimeLeft] = useState(0)
+
+  const authHeader = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } })
+
+  const loadHistory = async () => {
+    try {
+      const res = await axios.get('http://127.0.0.1:8000/api/aptitude/test_history/', authHeader())
+      setHistoryItems(res.data || [])
+    } catch(e) { console.log(e) }
+    setHistoryOpen(true)
+  }
+
+  const loadTestFromHistory = async (item) => {
+    try {
+      const res = await axios.get(`http://127.0.0.1:8000/api/aptitude/test/${item.id}/`, authHeader())
+      setReviewTest(res.data)
+      setReviewMode(true)
+    } catch(e) { console.log(e) }
+  }
+
 
   useEffect(() => {
     let timerId;
@@ -178,7 +200,34 @@ export default function AptitudePage() {
     return 'q-option opacity-40'
   }
 
-  // ── Finished Screen ──
+  if (reviewMode && reviewTest) return (
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => setReviewMode(false)} className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm text-muted hover:text-white transition-all">← Back</button>
+        <h2 className="font-display font-bold text-xl">{reviewTest.category} — {reviewTest.test_mode}</h2>
+        <span className="ml-auto text-sm text-muted">Score: <span className="font-bold text-accent">{Math.round(reviewTest.score)}%</span> ({reviewTest.no_of_correct_answers}/{reviewTest.no_of_questions})</span>
+      </div>
+      <div className="flex flex-col gap-3">
+        {reviewTest.questions.map((q, i) => (
+          <Card key={i} padding="p-5">
+            <p className="text-sm font-medium mb-4">{i+1}. {q.q}</p>
+            <div className="flex flex-col gap-2">
+              {q.opts.map((opt, oi) => {
+                const isCorrect = oi === q.ans
+                const isUserAns = opt === q.user_answer
+                let cls = 'px-4 py-2.5 rounded-lg text-sm border '
+                if (isCorrect) cls += 'bg-accent2/10 border-accent2/40 text-accent2'
+                else if (isUserAns && !isCorrect) cls += 'bg-red-500/10 border-red-500/40 text-red-400'
+                else cls += 'bg-white/[0.02] border-white/[0.07] text-muted'
+                return <div key={oi} className={cls}>{String.fromCharCode(65+oi)}. {opt}{isCorrect ? ' ✓' : ''}{isUserAns && !isCorrect ? ' ✗' : ''}</div>
+              })}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+
   if (finished) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
       <motion.div
@@ -206,7 +255,7 @@ export default function AptitudePage() {
     </div>
   )
 
-  // ── Quiz Screen ──
+
   if (started) return (
     <div>
       <div className="flex flex-col lg:flex-row gap-8">
@@ -287,10 +336,18 @@ export default function AptitudePage() {
   // ── Category Select Screen ──
   return (
     <div className="font-body text-[#e8e8f0]">
-      <PageHeader
-        title="Aptitude Practice"
-        subtitle="Customize your test and sharpen your reasoning skills with targeted practice sessions."
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Aptitude Practice"
+          subtitle="Customize your test and sharpen your reasoning skills with targeted practice sessions."
+        />
+        <button
+          onClick={loadHistory}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] text-sm text-muted hover:text-white transition-all"
+        >
+          <Icon name="menu" size={14} /> History
+        </button>
+      </div>
 
       <div className="flex flex-col xl:flex-row gap-6 mt-6">
         {/* Left Main Configuration Area */}
@@ -607,6 +664,20 @@ export default function AptitudePage() {
           </Card>
         </div>
       </div>
+      <HistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title="Aptitude History"
+        items={historyItems}
+        onSelect={loadTestFromHistory}
+        renderItem={(item) => (
+          <div>
+            <p className="font-semibold text-sm text-white mb-1">{item.category} — {item.test_mode}</p>
+            <p className="text-xs text-muted">{item.difficulty_level} · Score: {Math.round(item.score)}%</p>
+            <p className="text-xs text-muted mt-1">{new Date(item.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</p>
+          </div>
+        )}
+      />
     </div>
   )
-}
+}

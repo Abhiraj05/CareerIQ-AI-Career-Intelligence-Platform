@@ -16,9 +16,8 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('access_token')
 
-      // For development without backend: if no token or fetch fails, use a mock user
       if (!token) {
         setUser({
           name: 'Demo User',
@@ -31,7 +30,7 @@ export function AppProvider({ children }) {
       }
 
       try {
-        const res = await fetch('/api/auth/me/', {
+        const res = await fetch('http://127.0.0.1:8000/api/auth/me/', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -40,7 +39,7 @@ export function AppProvider({ children }) {
         const data = await res.json()
         setUser(data)
       } catch (err) {
-        console.warn('Backend not available, using mock user')
+        console.warn('Backend not available or token invalid')
         setUser({
           name: 'Demo User',
           email: 'demo@careeriq.ai',

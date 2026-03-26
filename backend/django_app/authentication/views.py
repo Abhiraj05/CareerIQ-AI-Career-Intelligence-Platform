@@ -68,6 +68,13 @@ class UserLoginView(APIView):
                     {"error": "Invalid credentials"},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
+            
+            if user.scheduled_deletion_on:
+                return Response(
+                    {"error": "This account is scheduled for deletion and is no longer accessible."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
             refresh = RefreshToken.for_user(user)
             return Response({
                 'message': 'user logged in successfully',
@@ -135,7 +142,7 @@ class set_new_password(APIView):
             default_email = "support@quizizeai.com"
             mail_sub = "Your Password Has Been Changed"
             confirm_message = f"""
-            Hello {user.username},
+            Hello {user.name},
 
             This is a confirmation that the password for your account has been successfully changed.
 
@@ -153,3 +160,14 @@ class set_new_password(APIView):
             return Response({"message": "password reset successfully."})
         else:
             return Response({"message": "Invalid or expired token.."}, status=status.HTTP_400_BAD_REQUEST)
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            "id": request.user.id,
+            "name": request.user.name,
+            "email": request.user.email,
+            "plan": "Pro"
+        })

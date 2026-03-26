@@ -12,6 +12,14 @@ import axios from "axios";
 const scoreColor = (s) =>
   s >= 80 ? "#38e2c7" : s >= 65 ? "#fbbf24" : "#f97aad";
 
+const api = axios.create({ baseURL: 'http://127.0.0.1:8000/api' })
+const authHeader = () => ({
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+    'Content-Type': 'multipart/form-data'
+  }
+})
+
 export default function ResumePage() {
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
@@ -39,9 +47,10 @@ export default function ResumePage() {
     setLoading(true);
     try {
       setAnalyzed(false);
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/resume/upload/",
+      const response = await api.post(
+        "/resume/upload/",
         formData,
+        authHeader()
       );
       setOverallScore(response.data.analysis_result.overall_score);
       setOverallLabel(response.data.analysis_result.overall_label);

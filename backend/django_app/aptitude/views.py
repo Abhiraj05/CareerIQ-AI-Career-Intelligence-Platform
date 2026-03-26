@@ -96,7 +96,9 @@ class SubmitAnswerView(APIView):
             
             test = question.test
             correct_count = AptitudeQuestions.objects.filter(test=test, is_correct=True).count()
+            answered_count = AptitudeQuestions.objects.filter(test=test).exclude(user_answer=None).exclude(user_answer='').count()
             test.no_of_correct_answers = correct_count
+            test.no_of_attempts = answered_count
             if test.no_of_questions > 0:
                 test.score = (correct_count / test.no_of_questions) * 100
             test.save()
@@ -115,11 +117,22 @@ class Test_History_View(APIView):
         serializer = TestResultSerializer(tests, many=True)
         return Response(serializer.data)
 
-class display_data(APIView):
+class GetTestDetailView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request):
-        serializer = QuestionSerializer(data=request.data)
-        if serializer.is_valid():
-            test_id = serializer.validated_data.get('test_id')
-            llm_data = AptitudeQuestions.objects.filter(test_id=test_id).order_by('id').values()
-            return Response({"llm_data": llm_data})
+    def get(self, request, test_id):
+        try:
+            test = AptitudeTest.objects.get(id=test_id, user_id=request.user)
+        except AptitudeTest.DoesNotExist:
+            return JsonResponse({"error": "Test not found."}, status=404)
+        questions = list(AptitudeQuestions.objects.filter(test=test).order_by('id').values(
+            'id', 'question_text', 'options', 'correct_answer', 'user_answer', 'is_correct', 'difficulty_level'
+        ))
+        formatted = [{"id": q["id"], "q": q["question_text"], "opts": q["options"],
+                      "ans": q["options"].index(q["correct_answer"]) if q["correct_answer"] in (q["options"] or []) else 0,
+                      "user_answer": q["user_answer"], "is_correct": q["is_correct"]} for q in questions]
+        return JsonResponse({
+            "id": test.id, "test_mode": test.test_mode, "category": test.category,
+            "difficulty_level": test.difficulty_level, "score": test.score,
+            "no_of_questions": test.no_of_questions, "no_of_correct_answers": test.no_of_correct_answers,
+            "created_at": test.created_at.strftime("%b %d, %Y"), "questions": formatted
+        })

@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'aptitude',
     'progress',
     'user',
-    'common'
+    'common',
+    'payments'
 ]
 
 MIDDLEWARE = [
@@ -146,3 +147,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
+
+STRIPE_PUBLISHABLE_KEY = 'pk_test_placeholder'
+STRIPE_SECRET_KEY = 'sk_test_placeholder'

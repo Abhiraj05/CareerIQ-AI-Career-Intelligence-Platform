@@ -11,6 +11,7 @@ import ResumePage from './pages/dashboard/ResumePage'
 import AptitudePage from './pages/dashboard/AptitudePage'
 import ProgressPage from './pages/dashboard/ProgressPage'
 import SettingsPage from './pages/dashboard/SettingsPage'
+import PricingPage from './pages/dashboard/PricingPage'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="aptitude" element={<AptitudePage />} />
           <Route path="progress" element={<ProgressPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="pricing" element={<PricingPage />} />
         </Route>
 
         {/* Fallback */}
