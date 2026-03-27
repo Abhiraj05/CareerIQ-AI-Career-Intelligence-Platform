@@ -74,7 +74,7 @@ export default function ResumePage() {
         subtitle="Upload your resume for AI-powered ATS scoring and improvement suggestions."
       />
 
-      {/* Upload Zone */}
+      {}
       <AnimatePresence mode="wait">
         {!file ? (
           <motion.div
@@ -159,9 +159,9 @@ export default function ResumePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {/* Score + Sections */}
+                  {}
                   <div className="grid lg:grid-cols-5 gap-5 mb-5">
-                    {/* Score Ring */}
+                    {}
                     <Card className="lg:col-span-2 flex flex-col items-center justify-center gap-5 py-8">
                       <ScoreRing
                         score={overallScore}
@@ -179,7 +179,7 @@ export default function ResumePage() {
                       </div>
                     </Card>
 
-                    {/* Section Analysis */}
+                    {}
                     <Card className="lg:col-span-3" padding="p-6">
                       <h3 className="font-display font-bold text-base mb-5">
                         Section Analysis
@@ -214,7 +214,7 @@ export default function ResumePage() {
                     </Card>
                   </div>
 
-                  {/* Improvement Tips */}
+                  {}
                   <Card padding="p-6">
                     <h3 className="font-display font-bold text-base mb-5">
                       🎯 Top Improvement Suggestions

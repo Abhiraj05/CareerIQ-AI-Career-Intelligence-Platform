@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Icon from "../ui/Icon";
 import { useApp } from "../../context/AppContext";
@@ -20,7 +20,13 @@ const sidebarVariants = {
 };
 
 export default function Sidebar({ collapsed, onToggle }) {
-  const { user } = useApp();
+  const { user, logout } = useApp();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
 
   return (
     <motion.aside
@@ -29,7 +35,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       className="flex-shrink-0 flex flex-col bg-surface border-r border-white/[0.07] overflow-hidden z-50"
     >
-      {/* Logo */}
+      {}
       <div className="flex items-center gap-3 px-4 py-5 mb-2">
         {/* <div className="w-9 h-9 min-w-[36px] rounded-[10px] bg-gradient-to-br from-accent to-violet-400 flex items-center justify-center text-base flex-shrink-0">
           ⚡
@@ -49,7 +55,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         </AnimatePresence>
       </div>
 
-      {/* Nav */}
+      {}
       <nav className="flex flex-col gap-1 px-3 flex-1">
         {NAV_ITEMS.map((item) => (
           <NavLink
@@ -79,8 +85,8 @@ export default function Sidebar({ collapsed, onToggle }) {
         ))}
       </nav>
 
-      {/* User */}
-      <div className="border-t border-white/[0.07] p-3 mt-2">
+      {}
+      <div className="border-t border-white/[0.07] p-3 mt-auto space-y-2">
         <div className="flex items-center gap-3 px-1 py-1">
           <div className="w-9 h-9 min-w-[36px] rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
             {user?.avatar ? (
@@ -108,6 +114,19 @@ export default function Sidebar({ collapsed, onToggle }) {
             )}
           </AnimatePresence>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-xs uppercase tracking-wider ${
+            collapsed 
+              ? 'justify-center text-red-400 hover:bg-red-500/10' 
+              : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+          }`}
+          title={collapsed ? "Logout" : undefined}
+        >
+          <Icon name="bolt" size={16} />
+          {!collapsed && <span>Logout</span>}
+        </button>
       </div>
     </motion.aside>
   );

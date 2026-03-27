@@ -20,20 +20,28 @@ export default function RegisterPage() {
         alert("Passwords do not match")}
         else{setLoading(true)
     try {
+
+      await axios.post('http://127.0.0.1:8000/api/auth/signup/', form);
       
-      const response = await axios.post('http://127.0.0.1:8000/api/auth/signup/',form,);
+
+      const loginRes = await axios.post('http://127.0.0.1:8000/api/auth/login/', {
+        email: form.email,
+        password: form.password
+      });
+
+      localStorage.setItem("access_token", loginRes.data.access);
+      localStorage.setItem("refresh_token", loginRes.data.refresh);
       
       setForm({ name: '', email: '', password: '', confirm_password: '' })
-    
-      navigate('/login')
-              alert("user registered successfully.");
-      } catch {
-        console.error("failed to signup");
-        alert("failed to signup");
-      }
-      setLoading(false);
+      window.location.href = '/dashboard';
+      alert("Account created and logged in!");
+    } catch (err) {
+      console.error("failed to signup", err);
+      alert("failed to signup: " + (err.response?.data?.message || "Unknown error"));
     }
-  };
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-6 relative">

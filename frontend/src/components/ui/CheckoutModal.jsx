@@ -20,7 +20,7 @@ const CheckoutForm = ({ amount, onCancel, onSuccess }) => {
     setLoading(true)
     setError(null)
 
-    // Simulating processing state for professional demo
+
     setTimeout(() => {
       setLoading(false)
       onSuccess()
@@ -98,7 +98,7 @@ export default function CheckoutModal({ isOpen, onClose, amount = 19 }) {
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           className="relative w-full max-w-md bg-[#0d0d0f] border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden"
         >
-          {/* Success Overlay */}
+          {}
           <AnimatePresence>
             {success && (
               <motion.div 

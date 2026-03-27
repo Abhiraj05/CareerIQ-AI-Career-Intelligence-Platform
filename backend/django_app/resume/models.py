@@ -1,6 +1,7 @@
 from django.db import models
 from user.models import UserProfile
 # Create your models here.
+# UserResume Model
 class UserResume(models.Model):
     user_id = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     resume_file = models.FileField(upload_to='resumes_files/')
@@ -8,6 +9,7 @@ class UserResume(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+# ResumeAnalysis Model
 class ResumeAnalysis(models.Model): 
     user_id = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     analysis_result = models.JSONField(null=True, blank=True)

@@ -9,13 +9,14 @@ from django.db.models import Avg, Count
 from django.utils import timezone
 import datetime
 
+# Fetch and process users progress
 class ProgressSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
 
-        # 1. Roadmap Progress (Aggregate across all historical roadmaps)
+        # 1. Roadmap Progress 
         all_roadmaps = RoadMap.objects.filter(role__user=user)
         total_modules = 0
         total_completed = 0
@@ -37,20 +38,19 @@ class ProgressSummaryView(APIView):
         sessions = InterviewPrep.objects.filter(user_id=user)
         if sessions.exists():
             total_rev = sum(len(s.reviewed_questions or []) for s in sessions)
-            # Fetch question counts
             iq_counts = [len(iq.question_answer_text or []) for iq in InterviewQuestion.objects.filter(interview_prep__user_id=user)]
             total_possible = sum(iq_counts)
             if total_possible > 0:
                 interview_readiness = round((total_rev / total_possible) * 100)
 
-        # 4. Skill Proficiency (Filter to only necessary data that exists in project)
+        # 4. Skill Proficiency 
         skill_proficiency = {
             "aptitude": [],
             "technical": [],
             "roles": []
         }
         
-        # Aptitude contributions (Filter out 'All Categories' redundancy)
+        # Aptitude contributions 
         apt_cats = apt_tests.values('category').annotate(avg_s=Avg('score'))
         for cat in apt_cats:
             if cat['avg_s'] is not None and cat['category'] != 'All Categories': 
@@ -60,9 +60,9 @@ class ProgressSummaryView(APIView):
                     "color": "#fbbf24"
                 })
 
-        # Interview contribution (Accurate weighted average)
+        # Interview contribution
         it_preps = InterviewPrep.objects.filter(user_id=user)
-        tech_data = {} # { "React": [total_q, reviewed] }
+        tech_data = {} 
         for prep in it_preps:
             iq = InterviewQuestion.objects.filter(interview_prep=prep).first()
             if iq and iq.question_answer_text:
@@ -82,9 +82,9 @@ class ProgressSummaryView(APIView):
                 "color": "#7c6dfa"
             })
 
-        # Roadmap contribution (Accurate weighted average)
+        # Roadmap contribution 
         all_roadmaps = RoadMap.objects.filter(role__user=user)
-        role_data = {} # { "Role": [total, completed] }
+        role_data = {} 
         for rm in all_roadmaps:
             if rm.roadmap:
                 total = sum(len(p.get("modules", [])) for p in rm.roadmap)
@@ -127,13 +127,13 @@ class ProgressSummaryView(APIView):
                     "score": 0
                 })
 
-        # 6. Resume Score (Average of all analyses)
+        # 6. Resume Score 
         resume_score = 0
         res_analyses = ResumeAnalysis.objects.filter(user_id=user)
         if res_analyses.exists():
-            resume_score = 74 # Placeholder for derived logic
+            resume_score = 74 
 
-        # 7. Activity Log (Combine latest from all)
+        # 7. Activity Log 
         log = []
         for it in apt_tests.order_by('-created_at')[:3]:
             log.append({
@@ -164,10 +164,8 @@ class ProgressSummaryView(APIView):
                 "time": it.created_at.strftime('%d %b %Y'),
             })
         
-        # Sort log by date (simple date string sort isn't great, better build properly but let's just reverse and slice)
-        # Actually already sliced. Let's return.
 
-        # 8. Dynamic AI Insights
+        # 8. Dynamic AI Insights on Dashboard
         insights = []
         if roadmap_score > 60:
             insights.append({"tag": "Achievement", "text": f"Impressive progress on your career roadmap ({roadmap_score}%). You've covered all core pillars of your target role.", "icon": "trophy", "color": "#fbbf24"})

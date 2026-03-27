@@ -1,27 +1,28 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap, AptitudeTestRequest
+from schemas.requestSchema import ResumeAnalysisRequest, InterviewQuestionsRequest, Roadmap, AptitudeTestRequest
 from langchain_groq import ChatGroq
-from .prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt, aptitude_test_prompt
+from prompt.system_prompt import resume_prompt, roadmap_prompt, interview_questions_prompt, aptitude_test_prompt
 from dotenv import load_dotenv
 import os
 import json
 import re
 
+# Extracting Json From llm to keep consistence json response
 def extract_json_from_llm(content: str):
     content = content.strip()
     try:
-        # First try direct parsing
+       
         return json.loads(content)
     except json.JSONDecodeError:
-        # Try to extract JSON from markdown block
+        
         match = re.search(r"```(?:json)?\s*(\{.*\}|\[.*\])\s*```", content, re.DOTALL)
         if match:
             try:
                 return json.loads(match.group(1).strip())
             except json.JSONDecodeError:
                 pass
-        # As a fallback, try to find the first { and last }
+        
         start_idx = content.find('{')
         end_idx = content.rfind('}')
         if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
@@ -32,13 +33,16 @@ def extract_json_from_llm(content: str):
                 
         raise HTTPException(status_code=500, detail="LLM generated invalid or truncated JSON. Try generating fewer questions or regenerating.")
 
+# Creates an app
 app = FastAPI()
 
+# Allowed Origins
 origins = [
     "http://localhost:8000",
     "http://localhost:5173"
 ]
 
+# Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -47,10 +51,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# loads the api key
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
+# Analyzes Resume and returns the Scoring and Details to be improved
 @app.post("/analyze_resume")
 async def analyze_resume(request: ResumeAnalysisRequest):
     resume_text = request.resume_text
@@ -91,6 +97,7 @@ async def analyze_resume(request: ResumeAnalysisRequest):
     json_data_file = extract_json_from_llm(llm_model_response.content)
     return {"analysis_result": json_data_file}
 
+# Generate a personalized career roadmap based on role and skills
 @app.post("/generate_roadmap")
 def generate_roadmap(request: Roadmap):
     role_name = request.role_name
@@ -127,9 +134,10 @@ def generate_roadmap(request: Roadmap):
         ),
     ]
     llm_model_response = groq_llm.invoke(messages)
-    json_data_file = extract_json_from_llm(llm_model_response.content)
-    return {"roadmap": json_data_file}
+    json_data = extract_json_from_llm(llm_model_response.content)
+    return {"roadmap": json_data}
 
+# Generate interview questions for specific roles and experience
 @app.post("/generate_interview_questions")
 def generate_interview_questions(request: InterviewQuestionsRequest):
     target_role = request.target_role
@@ -193,6 +201,7 @@ def generate_interview_questions(request: InterviewQuestionsRequest):
     json_data_file = extract_json_from_llm(llm_model_response.content)
     return {"interview_questions": json_data_file}
 
+# Generate aptitude tests 
 @app.post("/generate_aptitude_test")
 async def generate_aptitude_test(request: AptitudeTestRequest):
     task_mode = request.test_mode

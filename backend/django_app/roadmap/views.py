@@ -9,6 +9,7 @@ from rest_framework.response import Response
 import json
 
 
+# Retrieve the history of generated roadmaps 
 class RoadmapHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -32,7 +33,7 @@ class RoadmapHistoryView(APIView):
         return JsonResponse({"history": data})
 
 
-# Create your views here.
+# Coordinate with FastAPI to generate and save a new career roadmap
 class GenerateRoadmapView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -43,7 +44,6 @@ class GenerateRoadmapView(APIView):
             experience_level = request.data.get("experience_level")
             current_skills = request.data.get("current_skills")
 
-            # Call FastAPI to generate roadmap
             response = requests.post("http://127.0.0.1:8001/generate_roadmap", json={
                 "role_name": role_name,
                 "experience_level": experience_level,
@@ -54,17 +54,16 @@ class GenerateRoadmapView(APIView):
                 return JsonResponse({"error": "Failed to generate roadmap."}, status=500)
 
             outer = response.json()
-            # FastAPI returns: { "roadmap": { "career_role": "...", "roadmap": [...], ... } }
+            
             llm_data = outer.get("roadmap", {})
             if isinstance(llm_data, dict):
                 roadmap_data = llm_data.get("roadmap", [])
                 career_role_label = llm_data.get("career_role", role_name)
             else:
-                # fallback: already a list
                 roadmap_data = llm_data
                 career_role_label = role_name
 
-            # Save CareerRole to DB
+            
             career_role_obj = CareerRole.objects.create(
                 user=request.user,
                 role_name=role_name,
@@ -72,7 +71,7 @@ class GenerateRoadmapView(APIView):
                 current_skills=current_skills if isinstance(current_skills, list) else []
             )
 
-            # Save RoadMap to DB
+            
             roadmap_obj = RoadMap.objects.create(
                 role=career_role_obj,
                 roadmap=roadmap_data,
@@ -88,13 +87,12 @@ class GenerateRoadmapView(APIView):
             return Response(career_serializer.errors, status=400)
 
 
+# Fetch the recently created roadmap to display on dashboard 
 class GetLatestRoadmapView(APIView):
-    """Returns the user's most recently generated roadmap with completion state."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            # Get latest CareerRole for this user
             latest_role = CareerRole.objects.filter(user=request.user).order_by('-created_at').first()
             if not latest_role:
                 return JsonResponse({"roadmap_id": None, "roadmap": [], "completed_modules": [], "career_role": ""})
@@ -113,13 +111,14 @@ class GetLatestRoadmapView(APIView):
             return JsonResponse({"error": str(e)}, status=500)
 
 
+# Update the completion status of a specific module within a roadmap
 class ToggleModuleView(APIView):
     """Toggle a module's completed state in the RoadMap."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         roadmap_id = request.data.get("roadmap_id")
-        module_key = request.data.get("module_key")  # e.g. "0-1"
+        module_key = request.data.get("module_key") 
 
         if not roadmap_id or module_key is None:
             return Response({"error": "roadmap_id and module_key are required."}, status=400)
@@ -141,6 +140,7 @@ class ToggleModuleView(APIView):
         return JsonResponse({"completed_modules": completed})
 
 
+# Fetch a specific roadmap's details by its unique identifier
 class GetRoadmapByIdView(APIView):
     permission_classes = [IsAuthenticated]
 

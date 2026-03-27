@@ -14,6 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 # Create your views here.
 
+# Register or Signup new user
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
 
@@ -47,6 +48,7 @@ class UserSignupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Authenticate and login New user
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -84,7 +86,7 @@ class UserLoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# generates the reset link email & sends it to user
+# generates password reset link email & sends it to user
 class reset_password(APIView):
     permission_classes = [AllowAny]
     def reset_password(request):
@@ -119,7 +121,7 @@ class reset_password(APIView):
         return Response({"message": "Reset link generated and sent to your email."})
 
 
-    # sets the new password in database
+# sets the new password 
 class set_new_password(APIView):
     def set_new_password(request):
         uid = request.data.get('uid')
@@ -160,6 +162,7 @@ class set_new_password(APIView):
             return Response({"message": "password reset successfully."})
         else:
             return Response({"message": "Invalid or expired token.."}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]

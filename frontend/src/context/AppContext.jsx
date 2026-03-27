@@ -19,12 +19,7 @@ export function AppProvider({ children }) {
       const token = localStorage.getItem('access_token')
 
       if (!token) {
-        setUser({
-          name: 'Demo User',
-          email: 'demo@careeriq.ai',
-          plan: 'Pro',
-          avatar: null
-        })
+        setUser(null)
         setUserLoading(false)
         return
       }
@@ -40,12 +35,7 @@ export function AppProvider({ children }) {
         setUser(data)
       } catch (err) {
         console.warn('Backend not available or token invalid')
-        setUser({
-          name: 'Demo User',
-          email: 'demo@careeriq.ai',
-          plan: 'Pro',
-          avatar: null
-        })
+        setUser(null)
       } finally {
         setUserLoading(false)
       }
@@ -55,7 +45,7 @@ export function AppProvider({ children }) {
   }, [])
 
   const logout = () => {
-    localStorage.removeItem('token')
+    localStorage.removeItem('access_token')
     setUser(null)
   }
 

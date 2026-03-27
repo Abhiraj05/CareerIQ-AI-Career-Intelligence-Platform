@@ -1,7 +1,7 @@
 from django.db import models
 from user.models import UserProfile
 # Create your models here.
-
+# Role Choices
 class Roles(models.TextChoices):
     FRONTEND = 'Frontend Developer'
     BACKEND = 'Backend Developer'
@@ -10,12 +10,13 @@ class Roles(models.TextChoices):
     DATASCIENTIST = 'Data Scientist'
     DEVOPS = 'DevOps Engineer'
 
+# ExperienceLevel Choices
 class ExperienceLevel(models.TextChoices):
     BEGINNER = 'Beginner'
     INTERMEDIATE = 'Intermediate'
     ADVANCED = 'Advanced'
 
-
+# CareerRole Model
 class CareerRole(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     role_name = models.CharField(max_length=100, choices=Roles.choices)
@@ -24,7 +25,7 @@ class CareerRole(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
+# Roadmap Models
 class RoadMap(models.Model):
     role = models.ForeignKey(CareerRole, on_delete=models.CASCADE)
     roadmap = models.JSONField()

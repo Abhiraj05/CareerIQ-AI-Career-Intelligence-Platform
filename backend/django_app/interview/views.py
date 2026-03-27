@@ -8,6 +8,7 @@ from .models import InterviewPrep, InterviewQuestion
 from user.models import UserProfile as User
 
 
+# Generate a set of interview questions
 class Generate_questions(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -33,6 +34,7 @@ class Generate_questions(APIView):
         return Response(serializer.errors, status=400)
 
 
+# Fetch the user's interview history
 class InterviewHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -52,6 +54,7 @@ class InterviewHistoryView(APIView):
         return JsonResponse({"history": data})
 
 
+# Retrieve details and questions for a specific interview session
 class InterviewSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -75,6 +78,7 @@ class InterviewSessionView(APIView):
             return JsonResponse({"error": "Session not found."}, status=404)
 
 
+# Toggle the reviewed status of a specific interview question
 class MarkReviewedView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -96,6 +100,7 @@ class MarkReviewedView(APIView):
         return JsonResponse({"reviewed_questions": reviewed})
 
 
+# Fetch the most recent interview session for the dashboard
 class GetLatestInterviewView(APIView):
     permission_classes = [IsAuthenticated]
 

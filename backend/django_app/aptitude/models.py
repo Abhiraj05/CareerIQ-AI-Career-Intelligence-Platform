@@ -1,11 +1,13 @@
 from django.db import models
 from user.models import UserProfile
 
+# Test Mode Choices
 class Select_Test_Mode(models.TextChoices):
     Practice_Mode = 'Practice Mode'
     Exam_Mode = 'Exam Mode'
     Full_Mock_Test = 'Full Developer Mock'
 
+# Category Choices
 class Select_Category(models.TextChoices):
     Quantitative_Aptitude = 'Quantitative Aptitude'
     Logical_Reasoning = 'Logical Reasoning'
@@ -14,6 +16,7 @@ class Select_Category(models.TextChoices):
     Technical_Aptitude = 'Technical Aptitude'
     All_Categories = 'All Categories'
 
+# Subtopic Choices 
 class Select_Subtopic(models.TextChoices):
     Arithmetic = 'Arithmetic'
     Time_Work = 'Time & Work'
@@ -37,11 +40,13 @@ class Select_Subtopic(models.TextChoices):
     DBMS = 'DBMS'
     None_Sub = 'None'
 
+# Difficulty Level Choices
 class Difficulty_Level(models.TextChoices):
     Easy = 'Easy'
     Medium = 'Medium'
     Hard = 'Hard'
 
+# Aptitude Questions Model
 class AptitudeQuestions(models.Model):
     test = models.ForeignKey('AptitudeTest', on_delete=models.CASCADE, related_name='questions')
     category = models.CharField(max_length=50 , choices=Select_Category.choices)
@@ -55,6 +60,7 @@ class AptitudeQuestions(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+# Aptitude Tests Model
 class AptitudeTest(models.Model):
     user_id = models.ForeignKey(UserProfile , on_delete=models.CASCADE)
     test_mode = models.CharField(max_length=50 , choices=Select_Test_Mode.choices)

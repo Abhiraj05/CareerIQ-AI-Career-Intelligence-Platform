@@ -26,7 +26,7 @@ export default function Navbar({ onMenuToggle }) {
   const [showNotifs, setShowNotifs] = useState(false)
   const inputRef = useRef(null)
 
-  // Advanced Filtering
+
   const results = search 
     ? SEARCH_OPTIONS.filter(opt => 
         opt.label.toLowerCase().includes(search.toLowerCase()) || 
@@ -35,7 +35,7 @@ export default function Navbar({ onMenuToggle }) {
       ).slice(0, 6)
     : []
 
-  // Global shortcut
+
   useEffect(() => {
     const handleDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -47,19 +47,27 @@ export default function Navbar({ onMenuToggle }) {
     return () => window.removeEventListener('keydown', handleDown)
   }, [])
 
-  // Close dropdowns on outside click (simple version)
+
   useEffect(() => {
-     const clickOut = () => {
-        setShowNotifs(false)
-     }
-     window.addEventListener('click', (e) => {
+     const clickOut = (e) => {
         if (!e.target.closest('.notif-zone')) setShowNotifs(false)
-     })
+        if (!e.target.closest('.user-zone')) setShowUserMenu(false)
+     }
+     window.addEventListener('click', clickOut)
+     return () => window.removeEventListener('click', clickOut)
   }, [])
+
+  const { logout } = useApp()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <header className="h-16 bg-surface border-b border-white/[0.07] flex items-center px-7 gap-4 justify-between flex-shrink-0 relative">
-      {/* Left */}
+      {}
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuToggle}
@@ -68,7 +76,7 @@ export default function Navbar({ onMenuToggle }) {
           <Icon name="menu" size={20} />
         </button>
 
-        {/* Search */}
+        {}
         <div className="relative">
           <div className="flex items-center gap-3 bg-surface2 border border-white/[0.07] rounded-xl px-4 py-2.5 w-[320px] focus-within:w-[400px] focus-within:border-accent/40 focus-within:bg-surface/50 transition-all duration-500 ease-in-out">
             <Icon name="search" size={14} className="text-muted flex-shrink-0" />
@@ -87,7 +95,7 @@ export default function Navbar({ onMenuToggle }) {
             </div>
           </div>
 
-          {/* Results Dropdown */}
+          {}
           <AnimatePresence>
             {showDropdown && search.length > 0 && (
               <motion.div
@@ -146,9 +154,9 @@ export default function Navbar({ onMenuToggle }) {
         </div>
       </div>
 
-      {/* Right */}
+      {}
       <div className="flex items-center gap-3">
-        {/* Notification */}
+        {}
         <div className="relative notif-zone">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -160,7 +168,7 @@ export default function Navbar({ onMenuToggle }) {
             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent3 border-2 border-surface shadow-[0_0_8px_rgba(249,122,173,0.5)]" />
           </motion.button>
 
-          {/* Premium Dropdown */}
+          {}
           <AnimatePresence>
             {showNotifs && (
               <motion.div
@@ -206,15 +214,52 @@ export default function Navbar({ onMenuToggle }) {
           </AnimatePresence>
         </div>
 
-        {/* Avatar */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/dashboard/settings')}
-          className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xs font-bold cursor-pointer overflow-hidden border border-white/[0.1] shadow-lg shadow-accent/10"
-        >
-          {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user?.name?.charAt(0) || '?')}
-        </motion.div>
+        {}
+        <div className="relative user-zone">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xs font-bold cursor-pointer overflow-hidden border border-white/[0.1] shadow-lg shadow-accent/10"
+          >
+            {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user?.name?.charAt(0) || '?')}
+          </motion.div>
+
+          <AnimatePresence>
+            {showUserMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute top-full right-0 mt-3 w-56 bg-[#12121e]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 z-[100] overflow-hidden"
+              >
+                <div className="px-4 py-3 border-b border-white/[0.05] mb-1">
+                  <p className="text-sm font-bold text-white truncate">{user?.name || 'User'}</p>
+                  <p className="text-[11px] text-muted truncate">{user?.email || 'm@example.com'}</p>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    navigate('/dashboard/settings')
+                    setShowUserMenu(false)
+                  }}
+                  className="w-full flex items-center gap-3 p-3 hover:bg-white/[0.04] rounded-xl transition-all text-left group"
+                >
+                  <Icon name="menu" size={14} className="text-muted group-hover:text-accent" />
+                  <span className="text-xs font-medium text-white/80">Settings</span>
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 p-3 hover:bg-red-500/10 rounded-xl transition-all text-left group"
+                >
+                  <Icon name="bolt" size={14} className="text-red-400" />
+                  <span className="text-xs font-bold text-red-400">Logout</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </header>
   )

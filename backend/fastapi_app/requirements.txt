@@ -1,2 +1,6 @@
 fastapi[standard]
- -qU langchain-groq
+langchain-groq
+python-dotenv
+uvicorn
+pydantic
+requests

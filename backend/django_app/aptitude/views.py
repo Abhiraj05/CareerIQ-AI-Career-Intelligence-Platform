@@ -8,6 +8,7 @@ import requests
 from django.http import JsonResponse
 import json
 
+# Generating Interview Test
 class StartTestView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -78,6 +79,7 @@ class StartTestView(APIView):
             }, safe=False)
         return Response(serializer.errors, status=400)
         
+# Checks Users Answer and Update the Score
 class SubmitAnswerView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -110,6 +112,7 @@ class SubmitAnswerView(APIView):
             }, safe=False)
         return Response(serializer.errors, status=400)
         
+# Fetch the Users Aptitude History
 class Test_History_View(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -117,6 +120,7 @@ class Test_History_View(APIView):
         serializer = TestResultSerializer(tests, many=True)
         return Response(serializer.data)
 
+# Fetch detailed results and question for each Aptitude Test
 class GetTestDetailView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, test_id):
@@ -135,4 +139,4 @@ class GetTestDetailView(APIView):
             "difficulty_level": test.difficulty_level, "score": test.score,
             "no_of_questions": test.no_of_questions, "no_of_correct_answers": test.no_of_correct_answers,
             "created_at": test.created_at.strftime("%b %d, %Y"), "questions": formatted
-        })
+        })

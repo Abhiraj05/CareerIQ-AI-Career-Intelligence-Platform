@@ -14,7 +14,7 @@ import { Target, Flag } from "lucide-react";
 
 const LEVELS = ["Beginner", "Intermediate", "Advanced"];
 
-const api = axios.create({ baseURL: "http://127.0.0.1:8000/api" });
+const api = axios.create({ baseURL: "http://127.0.0.1:8000/api" })
 const authHeader = () => ({
   headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
 });
@@ -29,7 +29,7 @@ export default function RoadmapPage() {
   const [loadingExisting, setLoadingExisting] = useState(true);
   const [generated, setGenerated] = useState(false);
   const [open, setOpen] = useState({});
-  const [done, setDone] = useState({});      // { "0-1": true, ... }
+  const [done, setDone] = useState({});
   const [career, setCareer] = useState("");
   const [roadmap, setRoadmap] = useState([]);
   const [roadmapId, setRoadmapId] = useState(null);
@@ -61,7 +61,7 @@ export default function RoadmapPage() {
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
-  // ── Load existing roadmap on mount ──────────────────────────────
+
   useEffect(() => {
     const loadExisting = async () => {
       try {
@@ -85,7 +85,7 @@ export default function RoadmapPage() {
     loadExisting();
   }, []);
 
-  // ── Generate a new roadmap ───────────────────────────────────────
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = { ...form, current_skills: skills };
@@ -109,9 +109,9 @@ export default function RoadmapPage() {
 
   const toggleOpen = (i) => setOpen((o) => ({ ...o, [i]: !o[i] }));
 
-  // ── Toggle module completion & persist ──────────────────────────
+
   const toggleDone = async (key) => {
-    if (togglingKey === key) return; // prevent double-click
+    if (togglingKey === key) return;
     const newDone = { ...done, [key]: !done[key] };
     setDone(newDone);
     setTogglingKey(key);
@@ -123,13 +123,13 @@ export default function RoadmapPage() {
       );
     } catch (err) {
       console.error("Failed to save toggle, reverting.", err);
-      setDone(done); // revert on error
+      setDone(done);
     } finally {
       setTogglingKey(null);
     }
   };
 
-  // ── Progress % for display ───────────────────────────────────────
+
   const totalModules = roadmap.reduce((acc, p) => acc + (p.modules?.length || 0), 0);
   const completedCount = Object.values(done).filter(Boolean).length;
   const overallPct = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
@@ -157,7 +157,7 @@ export default function RoadmapPage() {
         </button>
       </div>
 
-      {/* Config Form */}
+      {}
       <Card padding="p-7" className="mb-7">
         <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-5 mb-5">
@@ -188,10 +188,10 @@ export default function RoadmapPage() {
         </form>
       </Card>
 
-      {/* Loading */}
+      {}
       {loading && <Loader text="Building your personalized roadmap..." />}
 
-      {/* Roadmap Output */}
+      {}
       <AnimatePresence>
         {generated && !loading && (
           <motion.div
@@ -199,7 +199,7 @@ export default function RoadmapPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Title row + overall progress */}
+            {}
             <div className="flex items-center gap-3 mb-5 flex-wrap">
               <h2 className="font-display font-bold text-xl">{career} Roadmap</h2>
               <span className="bg-accent2/10 border border-accent2/30 text-accent2 text-xs font-semibold rounded-full px-3 py-1">
@@ -222,7 +222,7 @@ export default function RoadmapPage() {
                     key={pi}
                     className="border border-white/[0.07] rounded-xl overflow-hidden hover:border-accent/30 transition-colors duration-300"
                   >
-                    {/* Phase Header */}
+                    {}
                     <button
                       type="button"
                       onClick={() => toggleOpen(pi)}
@@ -245,7 +245,7 @@ export default function RoadmapPage() {
                       </motion.div>
                     </button>
 
-                    {/* Phase Body */}
+                    {}
                     <AnimatePresence>
                       {open[pi] && (
                         <motion.div
@@ -296,7 +296,7 @@ export default function RoadmapPage() {
                             })}
                           </div>
                           <div className="bg-surface2 pt-4 border-t border-white/[0.04] pl-6 space-y-4">
-                            {/* Focus Section */}
+                            {}
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <Target size={14} className="text-white/40" />
@@ -309,7 +309,7 @@ export default function RoadmapPage() {
                               </p>
                             </div>
 
-                            {/* Milestone Section */}
+                            {}
                             <div>
                               <div className="flex items-center gap-2 mb-2">
                                 <Flag size={14} className="text-white/40" />

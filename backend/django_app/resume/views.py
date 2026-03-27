@@ -10,7 +10,7 @@ from resume.serializers import ResumeUploadSerializer
 from markitdown import MarkItDown
 import os
 
-
+# To extract text from resume file
 def file_text_extract(file):
     extract = MarkItDown()
     temp_path = f"temp_{uuid.uuid4()}_{file.name}"
@@ -29,6 +29,7 @@ def file_text_extract(file):
     return text
 
 
+# Resume Uploading View and sending api request to llm
 class ResumeUploadView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -53,6 +54,7 @@ class ResumeUploadView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Fetching users Resume Analysis Video
 class ResumeHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -71,6 +73,7 @@ class ResumeHistoryView(APIView):
         return JsonResponse({"history": data})
 
 
+# Fetch detailed results for a specific resume analysis session
 class ResumeDetailView(APIView):
     permission_classes = [IsAuthenticated]
 

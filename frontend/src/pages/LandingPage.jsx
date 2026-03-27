@@ -84,17 +84,22 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-bg font-body text-[#e8e8f0]">
-      {/* ── Navbar ── */}
+      {}
       <nav className="glass-nav fixed top-0 left-0 right-0 z-50 px-10 h-16 flex items-center justify-between">
         <img className="h-10" src={Logo} alt="" />
 
         <div className="hidden md:flex items-center gap-8">
-          {["Features", "How It Works", "Pricing"].map((l) => (
+          {[
+            { name: "Features", id: "features" },
+            { name: "How It Works", id: "how-it-works" },
+            { name: "Pricing", id: "pricing" },
+          ].map((item) => (
             <span
-              key={l}
+              key={item.id}
+              onClick={() => document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' })}
               className="text-sm font-medium text-muted hover:text-[#e8e8f0] cursor-pointer transition-colors"
             >
-              {l}
+              {item.name}
             </span>
           ))}
         </div>
@@ -109,9 +114,9 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
+      {}
       <section className="relative pt-40 pb-28 text-center overflow-hidden">
-        {/* Background glows */}
+        {}
         <div className="absolute top-1/3 left-1/4 w-80 h-80 rounded-full bg-accent/10 blur-[100px] pointer-events-none" />
         <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full bg-accent2/8 blur-[80px] pointer-events-none" />
 
@@ -120,7 +125,7 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          {/* Pill badge */}
+          {}
           <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-1.5 mb-10">
             <span className="w-1.5 h-1.5 rounded-full bg-accent2 animate-shimmer" />
             <span className="text-xs font-semibold text-accent tracking-wide">
@@ -151,14 +156,18 @@ export default function LandingPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => {
+                const token = localStorage.getItem('access_token');
+                if (token) navigate("/dashboard");
+                else navigate("/login");
+              }}
             >
               View Dashboard
             </Button>
           </div>
         </motion.div>
 
-        {/* Stats */}
+        {}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -180,8 +189,8 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── Features ── */}
-      <section className="py-24 px-8 max-w-6xl mx-auto">
+      {}
+      <section id="features" className="py-24 px-8 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -229,8 +238,8 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section className="py-24 px-8 bg-surface border-y border-white/[0.07]">
+      {}
+      <section id="how-it-works" className="py-24 px-8 bg-surface border-y border-white/[0.07]">
         <div className="max-w-5xl mx-auto">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
@@ -263,7 +272,53 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
+      {}
+      <section id="pricing" className="py-24 px-8">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="font-display font-bold text-4xl tracking-tight mb-4">
+              Flexible <span className="gradient-text">Pricing</span> for Everyone
+            </h2>
+            <p className="text-muted max-w-md mx-auto">
+              Start for free and upgrade as you grow. No hidden fees.
+            </p>
+          </motion.div>
+          
+          <div className="grid lg:grid-cols-3 gap-8">
+            {[
+              { name: "Starter", price: "0", desc: "Perfect for students", features: ["5 Roadmaps/mo", "Basic Interviews", "Resume Score"] },
+              { name: "Pro", price: "19", desc: "Best for job seekers", features: ["Unlimited Roadmaps", "AI Mock Interviews", "Deep Resume Analysis"], highlight: true },
+              { name: "Plus", price: "49", desc: "For career pivoters", features: ["Priority Support", "Mentorship Access", "Placement Portal"] }
+            ].map((plan) => (
+              <div key={plan.name} className={`bg-surface border p-8 rounded-2xl transition-all ${plan.highlight ? 'border-accent shadow-xl shadow-accent/10' : 'border-white/[0.07]'}`}>
+                <h3 className="font-display font-bold text-xl mb-2">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  <span className="text-muted text-sm">/mo</span>
+                </div>
+                <p className="text-sm text-muted mb-6">{plan.desc}</p>
+                <div className="space-y-3 mb-8">
+                  {plan.features.map(f => (
+                    <div key={f} className="flex items-center gap-2 text-sm">
+                      <Icon name="check" size={14} className="text-accent" /> {f}
+                    </div>
+                  ))}
+                </div>
+                <Button variant={plan.highlight ? "primary" : "ghost"} className="w-full justify-center" onClick={() => navigate("/register")}>
+                  Get Started
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {}
       <section className="py-28 text-center px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -291,9 +346,9 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── Footer ── */}
+      {}
       <footer className="border-t border-white/[0.07] px-10 py-8 flex items-center justify-between flex-wrap gap-4">
-        {/* <img className="h-10" src={Logo} alt="" /> */}
+        {}
 
         <span className="text-muted text-sm">
           © 2025 CareerIQ Inc. — AI-powered career intelligence.

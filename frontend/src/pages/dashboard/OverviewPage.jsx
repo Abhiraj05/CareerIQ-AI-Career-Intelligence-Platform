@@ -71,7 +71,7 @@ export default function OverviewPage() {
         subtitle="Here's a snapshot of your career readiness today."
       />
 
-      {/* Stats Grid */}
+      {}
       <motion.div
         variants={container}
         initial="hidden"
@@ -95,9 +95,9 @@ export default function OverviewPage() {
         ))}
       </motion.div>
 
-      {/* Middle Row */}
+      {}
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
-        {/* Skill Snapshot */}
+        {}
         <Card delay={0.2}>
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-display font-bold text-base">Skill Snapshot</h3>
@@ -116,7 +116,7 @@ export default function OverviewPage() {
           </div>
         </Card>
 
-        {/* AI Learning Insights */}
+        {}
         <Card delay={0.3}>
           <div className="flex items-center gap-2 mb-5">
             <h3 className="font-display font-bold text-base">AI Learning Insights</h3>
@@ -140,7 +140,7 @@ export default function OverviewPage() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {}
       <Card delay={0.4}>
         <h3 className="font-display font-bold text-base mb-5">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">

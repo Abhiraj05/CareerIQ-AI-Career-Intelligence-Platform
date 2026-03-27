@@ -28,7 +28,7 @@ export default function AptitudePage() {
   const [timeLimitType, setTimeLimitType] = useState('Auto');
   const [customTime, setCustomTime] = useState(30);
 
-  // Test state
+
   const [started, setStarted] = useState(false)
   const [qIdx, setQIdx] = useState(0)
   const [selected, setSelected] = useState(null)
@@ -49,7 +49,7 @@ export default function AptitudePage() {
 
   const loadHistory = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/aptitude/test_history/', authHeader())
+      const res = await axios.get('http://127.0.0.1:8000/api/history/aptitude/', authHeader())
       setHistoryItems(res.data || [])
     } catch(e) { console.log(e) }
     setHistoryOpen(true)
@@ -57,7 +57,7 @@ export default function AptitudePage() {
 
   const loadTestFromHistory = async (item) => {
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/aptitude/test/${item.id}/`, authHeader())
+      const res = await axios.get(`http://127.0.0.1:8000/api/history/aptitude/${item.id}/`, authHeader())
       setReviewTest(res.data)
       setReviewMode(true)
     } catch(e) { console.log(e) }
@@ -76,7 +76,7 @@ export default function AptitudePage() {
     return () => clearInterval(timerId);
   }, [started, timeLeft, finished]);
 
-  // Use Quant / Arithmetic as default mock questions
+
   const questions = apiQuestions
   const q = questions[qIdx]
 
@@ -112,7 +112,7 @@ export default function AptitudePage() {
 
       const response = await axios.post(
         
-        "http://127.0.0.1:8000/api/aptitude/start_test/",
+        "http://127.0.0.1:8000/api/aptitude/start-test/",
         payload,
         {
           headers: {
@@ -124,7 +124,7 @@ export default function AptitudePage() {
       const data = response.data;
       setCurrentTestId(data.id);
       
-      // format depends on FastAPI response. Assuming data.question maps to UI.
+
       if (data.question && Array.isArray(data.question)) {
         setApiQuestions(data.question.map((item, idx) => ({
           id: item.id || idx,
@@ -161,14 +161,13 @@ export default function AptitudePage() {
     const isCorrect = selected === q.ans;
     if (isCorrect) setScore((s) => s + 1)
 
-    // Example submit to backend
+
     if (currentTestId && q.id !== undefined) {
       try {
         const token = localStorage.getItem('access_token');
-        await axios.post("http://127.0.0.1:8000/api/aptitude/submit_answer/", {
-          id: q.id,
+        await axios.post("http://127.0.0.1:8000/api/aptitude/submit-answer/", {
+          question_id: q.id,
           user_answer: q.opts[selected]
-          
         }, {
           headers: {
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
@@ -333,7 +332,7 @@ export default function AptitudePage() {
     </div>
   )
 
-  // ── Category Select Screen ──
+
   return (
     <div className="font-body text-[#e8e8f0]">
       <div className="flex items-center justify-between">
@@ -350,17 +349,17 @@ export default function AptitudePage() {
       </div>
 
       <div className="flex flex-col xl:flex-row gap-6 mt-6">
-        {/* Left Main Configuration Area */}
+        {}
         <div className="flex-1 space-y-6">
 
-          {/* Loading States */}
+          {}
           {loadingTest && <Loader text="Generating your aptitude test..." />}
 
-          {/* Select Mode */}
+          {}
           <Card padding="p-6">
             <h3 className="font-display font-medium text-lg mb-4 text-[#e8e8f0]">Select Mode</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Practice Mode */}
+              {}
               <div
                 onClick={() => setSelectedMode('Practice')}
                 className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedMode === 'Practice' ? 'border-accent bg-accent/10' : 'border-white/[0.07] hover:border-white/20'}`}
@@ -372,7 +371,7 @@ export default function AptitudePage() {
                 <p className="text-xs text-muted pl-9">No timer, Instant feedback</p>
               </div>
 
-              {/* Exam Mode */}
+              {}
               <div
                 onClick={() => setSelectedMode('Exam')}
                 className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedMode === 'Exam' ? 'border-accent bg-accent/10' : 'border-white/[0.07] hover:border-white/20'}`}
@@ -386,7 +385,7 @@ export default function AptitudePage() {
                 <p className="text-xs text-muted pl-9">Timer + score at the end</p>
               </div>
 
-              {/* Full Mock Test */}
+              {}
               <div
                 onClick={() => setSelectedMode('Mock')}
                 className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedMode === 'Mock' ? 'border-accent bg-accent/10' : 'border-white/[0.07] hover:border-white/20'}`}
@@ -402,7 +401,7 @@ export default function AptitudePage() {
             </div>
           </Card>
 
-          {/* Select Category & Subtopic */}
+          {}
           <div className="border border-white/[0.07] rounded-2xl bg-surface overflow-hidden">
             <div className="p-6 pb-4">
               <h3 className="font-display font-medium text-lg text-[#e8e8f0]">Select Category &amp; Subtopic</h3>
@@ -410,7 +409,7 @@ export default function AptitudePage() {
 
             <div className="flex flex-col md:flex-row border-t border-white/[0.07]">
 
-              {/* Left Sidebar inside Card */}
+              {}
               <div className="w-full md:w-[280px] border-r border-white/[0.07] bg-surface2/10">
                 <div className="p-4 border-b border-white/[0.07]">
                   <div className="flex items-center gap-3 text-sm text-muted bg-surface2 px-3 py-2 rounded-xl border border-white/[0.05]">
@@ -463,7 +462,7 @@ export default function AptitudePage() {
                 </div>
               </div>
 
-              {/* Right Subtopics Area */}
+              {}
               <div className="flex-1 p-6">
                 <div className="flex flex-wrap gap-2 mb-8">
                   {CATEGORIES.find(c => c.id === selectedMainCategory)?.subtopics.map(sub => (
@@ -477,7 +476,7 @@ export default function AptitudePage() {
                   ))}
                 </div>
 
-                {/* AI Recommendation Box */}
+                {}
                 <div className="bg-surface border border-white/[0.05] rounded-xl p-5 mb-2 mt-auto">
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
@@ -494,10 +493,10 @@ export default function AptitudePage() {
             </div>
           </div>
 
-          {/* Configuration Grid */}
+          {}
           <div className="flex flex-col md:flex-row gap-6 mb-4 items-center">
 
-            {/* No. Of Questions & Difficulty */}
+            {}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
                 <h4 className="font-medium text-[13px] text-[#e8e8f0]">Select Number of Questions</h4>
@@ -514,7 +513,7 @@ export default function AptitudePage() {
             </div>
           </div>
 
-          {/* Controls row */}
+          {}
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
             <div className="flex gap-4 items-center">
               <div className="flex gap-2 p-1 bg-surface2 rounded-xl">
@@ -598,7 +597,7 @@ export default function AptitudePage() {
             </div>
           </div>
 
-          {/* Start Button */}
+          {}
           <button
             onClick={startTest}
             disabled={loadingTest}
@@ -622,12 +621,12 @@ export default function AptitudePage() {
         </div>
 
 
-        {/* Right Sidebar - Insights Summary */}
+        {}
         <div className="w-full xl:w-[320px]">
           <Card padding="p-6" className="h-full bg-surface">
             <h3 className="font-display font-medium text-[15px] mb-8 text-[#e8e8f0]">Insights Summary</h3>
 
-            {/* Stat block 1 */}
+            {}
             <div className="mb-10">
               <p className="text-[13px] text-muted mb-3">Avg Time per Question</p>
               <div className="flex items-baseline gap-2 text-white mb-2">
@@ -637,7 +636,7 @@ export default function AptitudePage() {
               <p className="text-xs text-muted">(Benchmark: 1 min)</p>
             </div>
 
-            {/* Stat block 2 */}
+            {}
             <div className="mb-8 p-5 rounded-2xl bg-surface2/40 border border-white/[0.04]">
               <p className="text-[13px] text-muted mb-4">Previous Score in Arithmetic</p>
               <div className="text-[28px] font-display font-semibold text-white mb-4">65%</div>
@@ -652,7 +651,7 @@ export default function AptitudePage() {
               </div>
             </div>
 
-            {/* Stat block 3 */}
+            {}
             <div className="p-5 rounded-2xl bg-surface2/40 border border-white/[0.04] mt-6">
               <p className="text-[13px] text-muted mb-4">Time Limit</p>
               <div className="flex items-center justify-between mb-2">
@@ -680,4 +679,4 @@ export default function AptitudePage() {
       />
     </div>
   )
-}
+}

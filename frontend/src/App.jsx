@@ -12,18 +12,33 @@ import AptitudePage from './pages/dashboard/AptitudePage'
 import ProgressPage from './pages/dashboard/ProgressPage'
 import SettingsPage from './pages/dashboard/SettingsPage'
 import PricingPage from './pages/dashboard/PricingPage'
+import { useApp } from './context/AppContext'
+
+function ProtectedRoute({ children }) {
+  const { user, userLoading } = useApp()
+  const token = localStorage.getItem('access_token')
+
+  if (userLoading) return null
+  if (!user || !token) return <Navigate to="/login" replace />
+
+  return children
+}
 
 export default function App() {
   return (
     <AppProvider>
       <Routes>
-        {/* Public routes */}
+        {}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Dashboard routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        {}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
           <Route index element={<OverviewPage />} />
           <Route path="roadmap" element={<RoadmapPage />} />
           <Route path="interview" element={<InterviewPage />} />
@@ -34,7 +49,7 @@ export default function App() {
           <Route path="pricing" element={<PricingPage />} />
         </Route>
 
-        {/* Fallback */}
+        {}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppProvider>

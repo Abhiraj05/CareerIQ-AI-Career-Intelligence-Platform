@@ -26,7 +26,7 @@ export default function LoginPage() {
 
         localStorage.setItem("access_token", response.data.access);
         localStorage.setItem("refresh_token", response.data.refresh);
-        navigate('/dashboard')
+        window.location.href = '/dashboard';
         alert("Login Sucessfull");
       
       } catch (error) {

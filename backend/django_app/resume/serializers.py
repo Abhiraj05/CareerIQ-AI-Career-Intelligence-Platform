@@ -1,7 +1,7 @@
 from resume.models import UserResume
 from rest_framework import serializers
 
-
+# ResumeUploading Serializer
 class ResumeUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserResume

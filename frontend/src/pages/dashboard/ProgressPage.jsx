@@ -29,13 +29,13 @@ export default function ProgressPage() {
   })
   const [loading, setLoading] = useState(true)
 
-  // Animate progress bars after load
+
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 100)
     return () => clearTimeout(t)
   }, [])
 
-  // Fetch real progress data
+
   useEffect(() => {
     const fetchProgress = async () => {
       try {
@@ -92,7 +92,7 @@ export default function ProgressPage() {
     <div className="space-y-8 pb-10">
       <PageHeader title="Performance Analytics" subtitle="A comprehensive overview of your career readiness and technical growth." />
 
-      {/* Modern Score Summary */}
+      {}
       <motion.div
         variants={container} initial="hidden" animate="show"
         className="grid grid-cols-1 md:grid-cols-3 gap-6"
@@ -115,10 +115,10 @@ export default function ProgressPage() {
         ))}
       </motion.div>
 
-      {/* Main Analytics Grid */}
+      {}
       <div className="grid lg:grid-cols-12 gap-6">
         
-        {/* Skill Matrix - Premium Card Layout */}
+        {}
         <Card delay={0.2} padding="p-0" className="lg:col-span-7 bg-surface/40 backdrop-blur-md border border-white/[0.05]">
           <div className="p-7 border-b border-white/[0.05] flex items-center justify-between">
             <div>
@@ -188,7 +188,7 @@ export default function ProgressPage() {
           </div>
         </Card>
 
-        {/* Performance Trend - Takes 5/12 columns */}
+        {}
         <Card delay={0.3} padding="p-7" className="lg:col-span-5 bg-surface/40 backdrop-blur-md border border-white/[0.05]">
           <h3 className="font-display font-bold text-lg text-white mb-2">Growth Velocity</h3>
           <p className="text-xs text-muted mb-8">Performance trajectory over the last 6 months.</p>
@@ -228,7 +228,7 @@ export default function ProgressPage() {
         </Card>
       </div>
 
-      {/* Activity Timeline - Professional Feed */}
+      {}
       <Card delay={0.4} padding="p-7" className="bg-surface/40 backdrop-blur-md border border-white/[0.05]">
         <h3 className="font-display font-bold text-lg text-white mb-6">Activity Timeline</h3>
         <div className="overflow-x-auto">
