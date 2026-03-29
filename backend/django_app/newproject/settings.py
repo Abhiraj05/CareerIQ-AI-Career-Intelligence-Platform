@@ -90,10 +90,21 @@ WSGI_APPLICATION = 'newproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'careeriq',
+        'USER': 'postgres',
+        'PASSWORD': 'enter_password',  
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -151,4 +162,5 @@ SIMPLE_JWT = {
 
 STRIPE_PUBLISHABLE_KEY = 'pk_test_placeholder'
 STRIPE_SECRET_KEY = 'sk_test_placeholder'
+
 
