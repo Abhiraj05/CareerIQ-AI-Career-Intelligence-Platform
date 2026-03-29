@@ -100,7 +100,7 @@ WSGI_APPLICATION = 'newproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'careeriq',
+        'NAME': 'dbname',
         'USER': 'postgres',
         'PASSWORD': 'enter_password',  
         'HOST': 'localhost',
@@ -162,5 +162,3 @@ SIMPLE_JWT = {
 
 STRIPE_PUBLISHABLE_KEY = 'pk_test_placeholder'
 STRIPE_SECRET_KEY = 'sk_test_placeholder'
-
-

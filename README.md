@@ -39,7 +39,7 @@ An intelligent application designed to help students and professionals improve t
 
 #### Database:
 
-* SQLite 
+* PostgreSQL
 
 ---
 
