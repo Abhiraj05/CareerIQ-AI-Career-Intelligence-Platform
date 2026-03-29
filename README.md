@@ -151,10 +151,10 @@ GROQ_API_KEY=your_groq_api_key
 ---
 
 ### Password Reset
-![image](assets\screencapture-localhost-5173-forgot-password-2026-03-29-11_33_47.png)
+![image](assets/screencapture-localhost-5173-forgot-password-2026-03-29-11_33_47.png)
 
 ---
-![image](assets\screencapture-localhost-5173-setnewpassword-2026-03-29-11_34_04.png)
+![image](assets/screencapture-localhost-5173-setnewpassword-2026-03-29-11_34_04.png)
 
 ---
 ### DashBoard :- 
