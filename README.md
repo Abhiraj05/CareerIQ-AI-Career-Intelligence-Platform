@@ -39,7 +39,7 @@ An intelligent application designed to help students and professionals improve t
 
 #### Database:
 
-* SQLite / PostgreSQL
+* SQLite 
 
 ---
 
@@ -48,7 +48,7 @@ An intelligent application designed to help students and professionals improve t
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/careeriq.git
+git clone https://github.com/mayurkhedekar65/careeriq
 cd careeriq
 ```
 
@@ -151,10 +151,10 @@ GROQ_API_KEY=your_groq_api_key
 ---
 
 ### Password Reset
-![Forgot Password](assets\screencapture-localhost-5173-forgot-password-2026-03-29-11_33_47.png)
+![image](assets\screencapture-localhost-5173-forgot-password-2026-03-29-11_33_47.png)
 
 ---
-![Password Reset](assets\screencapture-localhost-5173-setnewpassword-2026-03-29-11_34_04.png)
+![image](assets\screencapture-localhost-5173-setnewpassword-2026-03-29-11_34_04.png)
 
 ---
 ### DashBoard :- 
